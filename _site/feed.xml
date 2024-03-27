@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-03-28T02:57:08+07:00</updated>
+  <updated>2024-03-28T03:01:31+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -24,7 +24,7 @@
     <link href="http://localhost:4000/posts/PicoCTF2024/" rel="alternate" type="text/html" title="PicoCTF 2024" />
     <published>2024-03-27T23:00:00+07:00</published>
   
-    <updated>2024-03-27T23:00:00+07:00</updated>
+    <updated>2024-03-28T02:57:57+07:00</updated>
   
     <id>http://localhost:4000/posts/PicoCTF2024/</id>
     <content src="http://localhost:4000/posts/PicoCTF2024/" />
@@ -47,11 +47,12 @@
 
 
       PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ý trong giải này.
-!(image)[https://i.imgur.com/3zvCRbn.png]
+
+
 
 GENERAL SKILLS: dont-you-love-banners
 Can you abuse the banner?
-The server has been leaking some crucial information on tethys.picoctf.net ...
+The server has been leaking some crucial information on tethys.picoctf.net 64560. Use the leaked information to get...
     </summary>
   
 
