@@ -1,0 +1,154 @@
+
+
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>http://localhost:4000/</id>
+  <title>Yuu's blog</title>
+  <subtitle>Something genuine</subtitle>
+  <updated>2024-03-28T00:03:46+07:00</updated>
+  <author>
+    <name>Yuu</name>
+    <uri>http://localhost:4000/</uri>
+  </author>
+  <link rel="self" type="application/atom+xml" href="http://localhost:4000/feed.xml"/>
+  <link rel="alternate" type="text/html" hreflang="en"
+    href="http://localhost:4000/"/>
+  <generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator>
+  <rights> © 2024 Yuu </rights>
+  <icon>/assets/img/favicons/favicon.ico</icon>
+  <logo>/assets/img/favicons/favicon-96x96.png</logo>
+
+
+  
+  <entry>
+    <title>W1 Playground Writeup</title>
+    <link href="http://localhost:4000/posts/W1Playground/" rel="alternate" type="text/html" title="W1 Playground Writeup" />
+    <published>2024-02-27T23:00:00+07:00</published>
+  
+    <updated>2024-02-27T23:00:00+07:00</updated>
+  
+    <id>http://localhost:4000/posts/W1Playground/</id>
+    <content src="http://localhost:4000/posts/W1Playground/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Bài 1: easy login
+
+
+Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
+
+
+Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
+Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey
+Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata["__proto__"][isAdm...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>Wannagame Freshman CTF writeup</title>
+    <link href="http://localhost:4000/posts/Wannagame-Freshman/" rel="alternate" type="text/html" title="Wannagame Freshman CTF writeup" />
+    <published>2023-11-11T23:00:00+07:00</published>
+  
+    <updated>2023-11-11T23:00:00+07:00</updated>
+  
+    <id>http://localhost:4000/posts/Wannagame-Freshman/</id>
+    <content src="http://localhost:4000/posts/Wannagame-Freshman/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      WannaWinFreshman-Writeup
+Bài 1 Warmup PHP:
+
+
+
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server
+  
+    Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK
+
+  
+  
+    Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payl...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>Asis CTF 2023 Writeup</title>
+    <link href="http://localhost:4000/posts/AsisCTF/" rel="alternate" type="text/html" title="Asis CTF 2023 Writeup" />
+    <published>2023-09-24T23:00:00+07:00</published>
+  
+    <updated>2023-09-24T23:00:00+07:00</updated>
+  
+    <id>http://localhost:4000/posts/AsisCTF/</id>
+    <content src="http://localhost:4000/posts/AsisCTF/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Asis-CTF-2023-Writeup
+Bài 1 hello:
+
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà muốn đọc được flag thì phải đọc được file next.txt
+  Đọc đề, đề gợi ý cho mình đọc manpage của curl
+
+
+
+
+
+  Sau khi đọc và phân tích manpage mình đã nhận ra cách làm của bài này dựa vào chức năng bên dướ...
+    </summary>
+  
+
+  </entry>
+
+</feed>
+
+
