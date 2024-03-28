@@ -85,7 +85,7 @@ Payload:
         { type: 'pipe', readable: false, writable: true }
   ]}).output.toString()
   ```
-  
+
   ![image](https://i.imgur.com/dKfBXot.png)
 
 
@@ -96,6 +96,7 @@ Payload:
 ## Bài 3: pwncloud
 
   ![image](https://i.imgur.com/67TEXUF.png)
+
 
 
 
