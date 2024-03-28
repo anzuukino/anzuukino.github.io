@@ -269,6 +269,11 @@
 
 </head>
 
+  <!-- <style>
+    body {
+      background-image: url('/assets/background/background.jpg');
+    }
+    </style> -->
 
   <body>
     <!-- The Side Bar -->
@@ -437,7 +442,7 @@
 </aside>
 <!-- #sidebar -->
 
-
+    
     <div id="main-wrapper" class="d-flex justify-content-center">
       <div class="container d-flex flex-column px-xxl-5">
         <!-- The Top Bar -->
@@ -1719,6 +1724,7 @@
 <article class="px-1">
   <header>
     <h1 data-toc-skip>Wannagame Freshman CTF writeup</h1>
+    
 
     <div class="post-meta text-muted">
       <!-- published date -->
@@ -1787,8 +1793,12 @@
           </em>
         </span>
 
-        <!-- read time -->
-        <!-- Calculate the post's reading time, and display the word count in tooltip -->
+        <div>
+          <!-- pageviews -->
+          
+
+          <!-- read time -->
+          <!-- Calculate the post's reading time, and display the word count in tooltip -->
 
 
 
@@ -1812,10 +1822,9 @@
 >
   <em>5 min</em> read</span>
 
+        </div>
       </div>
-      <!-- .d-flex -->
     </div>
-    <!-- .post-meta -->
   </header>
 
   <div class="content">
@@ -2706,21 +2715,13 @@ thành
 
               <h4 class="pt-0 my-2">W1 Playground Writeup</h4>
               <div class="text-muted">
-                <p>
-                  
-
-
-
-
-
-                  Bài 1: easy login
+                <p>Bài 1: easy login
 
 
 Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
 
 
-Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhậ...
-                </p>
+Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhậ...</p>
               </div>
             </div>
           </a>
@@ -2748,18 +2749,10 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
 
               <h4 class="pt-0 my-2">Asis CTF 2023 Writeup</h4>
               <div class="text-muted">
-                <p>
-                  
-
-
-
-
-
-                  Asis-CTF-2023-Writeup
+                <p>Asis-CTF-2023-Writeup
 Bài 1 hello:
 
-  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà mu...
-                </p>
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà mu...</p>
               </div>
             </div>
           </a>
@@ -2787,15 +2780,7 @@ Bài 1 hello:
 
               <h4 class="pt-0 my-2">PicoCTF 2024</h4>
               <div class="text-muted">
-                <p>
-                  
-
-
-
-
-
-                  PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ...
-                </p>
+                <p>PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ...</p>
               </div>
             </div>
           </a>
@@ -2837,7 +2822,7 @@ Bài 1 hello:
 
             
               
-              <!--  The comments switcher -->
+              <!-- The comments switcher -->
 
 
             
@@ -2867,7 +2852,14 @@ Bài 1 hello:
     
   </p>
 
-  <p>Using the <a href="https://github.com/cotes2020/jekyll-theme-chirpy" target="_blank" rel="noopener">Chirpy</a> theme for <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a>.
+  <p>Using the <a
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="v6.5.5"
+        href="https://github.com/cotes2020/jekyll-theme-chirpy"
+        target="_blank"
+        rel="noopener"
+      >Chirpy</a> theme for <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a>.
   </p>
 </footer>
 
@@ -3351,6 +3343,13 @@ Bài 1 hello:
 
 
 
+<!-- Pageviews -->
+
+  
+
+  
+
+
 
 
 
@@ -3372,7 +3371,7 @@ Bài 1 hello:
     resultsContainer: document.getElementById('search-results'),
     json: '/assets/js/data/search.json',
     searchResultTemplate: '  <article class="px-1 px-sm-2 px-lg-4 px-xl-0">    <header>      <h2><a href="{url}">{title}</a></h2>      <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">        {categories}        {tags}      </div>    </header>    <p>{snippet}</p>  </article>',
-    noResultsText: '<p class="mt-5"></p>',
+    noResultsText: '<p class="mt-5">Oops! No results found.</p>',
     templateMiddleware: function(prop, value, template) {
       if (prop === 'categories') {
         if (value === '') {

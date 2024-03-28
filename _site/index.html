@@ -42,7 +42,7 @@
 <meta property="twitter:title" content="Yuu’s blog" />
 <meta name="twitter:site" content="@anzuukino" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","description":"Something genuine","headline":"Yuu’s blog","name":"Yuu","sameAs":["https://github.com/anzuukino","https://www.instagram.com/_anzuukino_/","https://discordapp.com/users/355146544133046273"],"url":"http://localhost:4000/"}</script>
+{"@context":"https://schema.org","@type":"WebSite","description":"Something genuine","headline":"Yuu’s blog","name":"Yuu","sameAs":["https://github.com/anzuukino","https://www.instagram.com/_anzuukino_/"],"url":"http://localhost:4000/"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -263,6 +263,11 @@
 
 </head>
 
+  <!-- <style>
+    body {
+      background-image: url('/assets/background/background.jpg');
+    }
+    </style> -->
 
   <body>
     <!-- The Side Bar -->
@@ -431,7 +436,7 @@
 </aside>
 <!-- #sidebar -->
 
-
+    
     <div id="main-wrapper" class="d-flex justify-content-center">
       <div class="container d-flex flex-column px-xxl-5">
         <!-- The Top Bar -->
@@ -586,15 +591,7 @@
             <h1 class="card-title my-2 mt-md-0">PicoCTF 2024</h1>
 
             <div class="card-text content mt-0 mb-3">
-              <p>
-                
-
-
-
-
-
-                PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ...
-              </p>
+              <p>PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ...</p>
             </div>
 
             <div class="post-meta flex-grow-1 d-flex align-items-end">
@@ -649,21 +646,13 @@
             <h1 class="card-title my-2 mt-md-0">W1 Playground Writeup</h1>
 
             <div class="card-text content mt-0 mb-3">
-              <p>
-                
-
-
-
-
-
-                Bài 1: easy login
+              <p>Bài 1: easy login
 
 
 Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
 
 
-Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhậ...
-              </p>
+Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhậ...</p>
             </div>
 
             <div class="post-meta flex-grow-1 d-flex align-items-end">
@@ -718,20 +707,12 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
             <h1 class="card-title my-2 mt-md-0">Wannagame Freshman CTF writeup</h1>
 
             <div class="card-text content mt-0 mb-3">
-              <p>
-                
-
-
-
-
-
-                WannaWinFreshman-Writeup
+              <p>WannaWinFreshman-Writeup
 Bài 1 Warmup PHP:
 
 
 
-  Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file...
-              </p>
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file...</p>
             </div>
 
             <div class="post-meta flex-grow-1 d-flex align-items-end">
@@ -786,18 +767,10 @@ Bài 1 Warmup PHP:
             <h1 class="card-title my-2 mt-md-0">Asis CTF 2023 Writeup</h1>
 
             <div class="card-text content mt-0 mb-3">
-              <p>
-                
-
-
-
-
-
-                Asis-CTF-2023-Writeup
+              <p>Asis-CTF-2023-Writeup
 Bài 1 hello:
 
-  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà mu...
-              </p>
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà mu...</p>
             </div>
 
             <div class="post-meta flex-grow-1 d-flex align-items-end">
@@ -1245,7 +1218,14 @@ Bài 1 hello:
     
   </p>
 
-  <p>Using the <a href="https://github.com/cotes2020/jekyll-theme-chirpy" target="_blank" rel="noopener">Chirpy</a> theme for <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a>.
+  <p>Using the <a
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="v6.5.5"
+        href="https://github.com/cotes2020/jekyll-theme-chirpy"
+        target="_blank"
+        rel="noopener"
+      >Chirpy</a> theme for <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a>.
   </p>
 </footer>
 
@@ -1705,6 +1685,9 @@ Bài 1 hello:
 
 
 
+<!-- Pageviews -->
+
+
 
 
 
@@ -1726,7 +1709,7 @@ Bài 1 hello:
     resultsContainer: document.getElementById('search-results'),
     json: '/assets/js/data/search.json',
     searchResultTemplate: '  <article class="px-1 px-sm-2 px-lg-4 px-xl-0">    <header>      <h2><a href="{url}">{title}</a></h2>      <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">        {categories}        {tags}      </div>    </header>    <p>{snippet}</p>  </article>',
-    noResultsText: '<p class="mt-5"></p>',
+    noResultsText: '<p class="mt-5">Oops! No results found.</p>',
     templateMiddleware: function(prop, value, template) {
       if (prop === 'categories') {
         if (value === '') {
