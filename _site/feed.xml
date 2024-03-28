@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-03-28T12:18:18+07:00</updated>
+  <updated>2024-03-28T13:02:33+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -89,12 +89,16 @@ The server has been leaking some crucial information on tethys.picoctf.net 64560
       Bài 1: easy login
 
 
+
 Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
+
+
+
 
 
 Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
 Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey
-Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata["__proto__"][isAdm...
+Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata["__proto__"][i...
     </summary>
   
 

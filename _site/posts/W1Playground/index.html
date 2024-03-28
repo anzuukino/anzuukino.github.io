@@ -1596,28 +1596,41 @@
   <div class="content">
     <h2 id="bài-1-easy-login"><span class="me-2">Bài 1: easy login</span><a href="#bài-1-easy-login" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
 
-<p><a href="https://i.imgur.com/paDR37b.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/paDR37b.png" alt="image" loading="lazy"></a>
-Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
-<a href="https://i.imgur.com/ljSahfY.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/ljSahfY.png" alt="image" loading="lazy"></a>
-<a href="https://i.imgur.com/mr7eats.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/mr7eats.png" alt="image" loading="lazy"></a>
-Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
+<p><a href="https://i.imgur.com/paDR37b.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/paDR37b.png" alt="image" loading="lazy"></a></p>
+
+<p>Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”</p>
+
+<p><a href="https://i.imgur.com/ljSahfY.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/ljSahfY.png" alt="image" loading="lazy"></a></p>
+
+<p><a href="https://i.imgur.com/mr7eats.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/mr7eats.png" alt="image" loading="lazy"></a></p>
+
+<p>Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
 Chức năng admin kiểm tra xem chúng ta có phải admin không qua <code class="language-plaintext highlighter-rouge">isAdmin=true</code> sau khi phân tích jwtkey
 Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm <code class="language-plaintext highlighter-rouge">logindata["__proto__"][isAdmin]=true</code> vào thì prototype của <code class="language-plaintext highlighter-rouge">logindata</code> sẽ có thuộc tính <code class="language-plaintext highlighter-rouge">isAdmin=true</code> từ đó logindata sẽ kế thừa thuộc tính đó
-Payload<a href="https://i.imgur.com/t62zoI3.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/t62zoI3.png" alt="image" loading="lazy"></a>
-Có jwtkey rồi thì vào admin để lấy flag thôi
-<a href="https://i.imgur.com/NdpGVoS.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/NdpGVoS.png" alt="image" loading="lazy"></a></p>
+Payload</p>
+
+<p><a href="https://i.imgur.com/t62zoI3.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/t62zoI3.png" alt="image" loading="lazy"></a></p>
+
+<p>Có jwtkey rồi thì vào admin để lấy flag thôi</p>
+
+<p><a href="https://i.imgur.com/NdpGVoS.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/NdpGVoS.png" alt="image" loading="lazy"></a></p>
 
 <p><strong>Flag : W1{REDACTED}</strong></p>
 
 <h2 id="bài-2-render4free"><span class="me-2">Bài 2: render4free</span><a href="#bài-2-render4free" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
 
-<p><a href="https://i.imgur.com/KTMygHL.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/KTMygHL.png" alt="image" loading="lazy"></a>
-Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào
-Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI
-<a href="https://i.imgur.com/SliIvxB.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/SliIvxB.png" alt="image" loading="lazy"></a>
-Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js
-<a href="https://i.imgur.com/5mAiiby.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/5mAiiby.png" alt="image" loading="lazy"></a>
-Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta</p>
+<p><a href="https://i.imgur.com/KTMygHL.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/KTMygHL.png" alt="image" loading="lazy"></a></p>
+
+<p>Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào
+Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI</p>
+
+<p><a href="https://i.imgur.com/SliIvxB.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/SliIvxB.png" alt="image" loading="lazy"></a></p>
+
+<p>Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js</p>
+
+<p><a href="https://i.imgur.com/5mAiiby.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/5mAiiby.png" alt="image" loading="lazy"></a></p>
+
+<p>Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta</p>
 
 <p><code class="language-plaintext highlighter-rouge">- global.replace_bad_char = str_to_replace =&gt; str_to_replace</code>
 Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval</p>
@@ -1651,12 +1664,14 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
         <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">true</span> <span class="p">}</span>
   <span class="p">]}).</span><span class="nx">output</span><span class="p">.</span><span class="nf">toString</span><span class="p">()</span>
 </pre></td></tr></tbody></table></code></div></div>
-<p><a href="https://i.imgur.com/zswZKe6.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/zswZKe6.png" alt="image" loading="lazy"></a>
-Ngon vậy là có thể thực hiện lệnh ls
+<p><a href="https://i.imgur.com/zswZKe6.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/zswZKe6.png" alt="image" loading="lazy"></a></p>
+
+<p>Ngon vậy là có thể thực hiện lệnh ls
 Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag</p>
 
-<p><a href="https://i.imgur.com/5EUqBt7.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/5EUqBt7.png" alt="image" loading="lazy"></a>
-Payload:</p>
+<p><a href="https://i.imgur.com/5EUqBt7.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/5EUqBt7.png" alt="image" loading="lazy"></a></p>
+
+<p>Payload:</p>
 <div class="language-js highlighter-rouge"><div class="code-header">
         <span data-label-text="JavaScript"><i class="fas fa-code fa-fw small"></i></span>
       <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
@@ -1676,6 +1691,7 @@ Payload:</p>
         <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">true</span> <span class="p">}</span>
   <span class="p">]}).</span><span class="nx">output</span><span class="p">.</span><span class="nf">toString</span><span class="p">()</span>
 </pre></td></tr></tbody></table></code></div></div>
+
 <p><a href="https://i.imgur.com/dKfBXot.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/dKfBXot.png" alt="image" loading="lazy"></a></p>
 
 <p><strong>Flag: W1{REDACTED}</strong></p>
