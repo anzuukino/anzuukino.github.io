@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-03-28T17:57:08+07:00</updated>
+  <updated>2024-04-23T00:56:32+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -20,11 +20,64 @@
 
   
   <entry>
+    <title>GreyCTF 2024</title>
+    <link href="http://localhost:4000/posts/GreyCTF/" rel="alternate" type="text/html" title="GreyCTF 2024" />
+    <published>2024-04-21T23:00:00+07:00</published>
+  
+    <updated>2024-04-21T23:00:00+07:00</updated>
+  
+    <id>http://localhost:4000/posts/GreyCTF/</id>
+    <content src="http://localhost:4000/posts/GreyCTF/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      No Sql Injection
+I asked My friend Jason to build me a new e-commerce website. We just finished the login system and there's already bugs 🤦
+
+Author: jro
+
+http://challs.nusgreyhats.org:33336
+
+
+
+Phân tích qua thì bài này có các chức năng chính sau
+
+
+  /api/register/1
+
+
+app.post('/api/register/1', async (req, res) =&amp;gt; {
+    try {
+        let { username } = req.body;
+
+        username = decode(us...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
     <title>PicoCTF 2024</title>
     <link href="http://localhost:4000/posts/PicoCTF2024/" rel="alternate" type="text/html" title="PicoCTF 2024" />
     <published>2024-03-27T23:00:00+07:00</published>
   
-    <updated>2024-03-28T14:48:49+07:00</updated>
+    <updated>2024-03-28T17:57:23+07:00</updated>
   
     <id>http://localhost:4000/posts/PicoCTF2024/</id>
     <content src="http://localhost:4000/posts/PicoCTF2024/" />

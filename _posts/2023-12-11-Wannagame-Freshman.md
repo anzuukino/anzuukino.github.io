@@ -204,5 +204,3 @@ print(decryptSecret(secret))
 
 - Flag: **W1{_w3llC0mE_tO_w4nNaw1N_}**
 - ~~**Mấy bài còn lại mình chưa biết làm do dark quá**~~
-
-
