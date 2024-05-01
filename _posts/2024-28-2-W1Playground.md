@@ -116,6 +116,8 @@ Payload:
 
   ![image](https://i.imgur.com/nkf2UMl.png)
 
+  **Flag: W1{WASM_101_and_some_js_gadget_hope_you_enjoyed:)))))))))))))))))))))))))))))))))))))))))@0x4161}**
+
 
 
 
