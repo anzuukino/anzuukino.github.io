@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-04-23T00:56:32+07:00</updated>
+  <updated>2024-05-01T20:13:52+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -17,6 +17,52 @@
   <icon>/assets/img/favicons/favicon.ico</icon>
   <logo>/assets/img/favicons/favicon-96x96.png</logo>
 
+
+  
+  <entry>
+    <title>W1 Playground Writeup</title>
+    <link href="http://localhost:4000/posts/W1Playground/" rel="alternate" type="text/html" title="W1 Playground Writeup" />
+    <published>2024-04-30T23:00:00+07:00</published>
+  
+    <updated>2024-03-28T15:04:51+07:00</updated>
+  
+    <id>http://localhost:4000/posts/W1Playground/</id>
+    <content src="http://localhost:4000/posts/W1Playground/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Bài 1: easy login
+
+
+
+Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
+
+
+
+
+
+Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
+Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey
+Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata["__proto__"][i...
+    </summary>
+  
+
+  </entry>
 
   
   <entry>
@@ -113,57 +159,11 @@ The server has been leaking some crucial information on tethys.picoctf.net 64560
 
   
   <entry>
-    <title>W1 Playground Writeup</title>
-    <link href="http://localhost:4000/posts/W1Playground/" rel="alternate" type="text/html" title="W1 Playground Writeup" />
-    <published>2024-02-27T23:00:00+07:00</published>
-  
-    <updated>2024-03-28T15:04:51+07:00</updated>
-  
-    <id>http://localhost:4000/posts/W1Playground/</id>
-    <content src="http://localhost:4000/posts/W1Playground/" />
-    <author>
-      <name>Yuu</name>
-    </author>
-
-  
-    
-    <category term="CTF Writeup" />
-    
-  
-
-  
-    <summary>
-      
-
-
-
-
-
-      Bài 1: easy login
-
-
-
-Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
-
-
-
-
-
-Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
-Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey
-Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata["__proto__"][i...
-    </summary>
-  
-
-  </entry>
-
-  
-  <entry>
     <title>Wannagame Freshman CTF writeup</title>
     <link href="http://localhost:4000/posts/Wannagame-Freshman/" rel="alternate" type="text/html" title="Wannagame Freshman CTF writeup" />
     <published>2023-11-11T23:00:00+07:00</published>
   
-    <updated>2024-03-28T00:11:44+07:00</updated>
+    <updated>2024-04-23T00:56:56+07:00</updated>
   
     <id>http://localhost:4000/posts/Wannagame-Freshman/</id>
     <content src="http://localhost:4000/posts/Wannagame-Freshman/" />

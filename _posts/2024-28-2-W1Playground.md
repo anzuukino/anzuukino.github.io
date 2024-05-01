@@ -1,8 +1,8 @@
 ---
 title: "W1 Playground Writeup"
-date: 2024-02-28 00:00:00 +0800
+date: 2024-05-01 00:00:00 +0800
 categories: [CTF Writeup]
-tags: [Prototype Pollution, SSTI, API testing]
+tags: [Prototype Pollution, SSTI, API testing, XSS, PHP]
 ---
 
 ## Bài 1: easy login
@@ -93,9 +93,28 @@ Payload:
 
 
 
-## Bài 3: pwncloud
+## Bài 3: Super sanitizer
 
-  ![image](https://i.imgur.com/67TEXUF.png)
+  ![image](https://i.imgur.com/IZdGXnh.png)
+
+  Tóm tắt bài web này sử dụng WASM được compile từ C và sử dụng nó để xử lý input của user
+  File C nhận input của user và blacklist để xử lý nếu có ký tự blacklist thì ký tự đó sẽ bị xoá khỏi input của user
+
+  ![image](https://i.imgur.com/4gXTA7l.png)
+
+  Blacklist của bài này như sau `<imgoner='\"'>`
+
+  Lỗi của bài này nằm ở đây
+
+  ![image](https://i.imgur.com/zaOqpyM.png)
+
+  Khi chúng ta cho 1 ký tự có độ dài là `0x300` thì `raw_str[0x300]` sẽ bị tràn và sẽ ghi đè lên ký tự đầu tiên của blacklist là `\x00` từ đó blacklist sẽ trở thành rỗng -> bypass filter
+
+  Nhưng đến đây thì vẫn chưa xong, web có CSP để làm XSS khó hơn
+
+  Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng `window.location.href=hackerwebsite.com` vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ `flag.hackerwebsite.com`)
+
+  ![image](https://i.imgur.com/nkf2UMl.png)
 
 
 

@@ -30,23 +30,23 @@
 
   <!-- Begin Jekyll SEO tag v2.8.0 -->
 <meta name="generator" content="Jekyll v4.3.3" />
-<meta property="og:title" content="Yuu’s blog" />
+<meta property="og:title" content="XSS" />
 <meta property="og:locale" content="en" />
 <meta name="description" content="Something genuine" />
 <meta property="og:description" content="Something genuine" />
-<link rel="canonical" href="http://localhost:4000/" />
-<meta property="og:url" content="http://localhost:4000/" />
+<link rel="canonical" href="http://localhost:4000/tags/xss/" />
+<meta property="og:url" content="http://localhost:4000/tags/xss/" />
 <meta property="og:site_name" content="Yuu’s blog" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Yuu’s blog" />
+<meta property="twitter:title" content="XSS" />
 <meta name="twitter:site" content="@anzuukino" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","description":"Something genuine","headline":"Yuu’s blog","name":"Yuu","sameAs":["https://github.com/anzuukino","https://www.instagram.com/_anzuukino_/"],"url":"http://localhost:4000/"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"Something genuine","headline":"XSS","url":"http://localhost:4000/tags/xss/"}</script>
 <!-- End Jekyll SEO tag -->
 
 
-  <title>Yuu's blog
+  <title>XSS | Yuu's blog
   </title>
 
   <!--
@@ -104,8 +104,6 @@
 
   
 
-  
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.min.css">
   
 
   
@@ -286,7 +284,7 @@
   <nav class="flex-column flex-grow-1 w-100 ps-0">
     <ul class="nav">
       <!-- home -->
-      <li class="nav-item active">
+      <li class="nav-item">
         <a href="/" class="nav-link">
           <i class="fa-fw fas fa-home"></i>
           <span>HOME</span>
@@ -450,9 +448,27 @@
       
 
       
-        <!-- index page -->
-        <span>Home</span>
+        
+          
+            <span>
+              <a href="/">Home</a>
+            </span>
 
+          
+        
+          
+            <span>
+              <a href="/tags/">Tags</a>
+            </span>
+          
+        
+          
+            
+              <span>XSS</span>
+            
+
+          
+        
       
     </nav>
     <!-- endof #breadcrumb -->
@@ -462,7 +478,7 @@
     </button>
 
     <div id="topbar-title">
-      Yuu's blog
+      Tag
     </div>
 
     <button type="button" id="search-trigger" class="btn btn-link">
@@ -488,127 +504,28 @@
         <div class="row flex-grow-1">
           <main aria-label="Main Content" class="col-12 col-lg-11 col-xl-9 px-md-4">
             
-              <!-- Refactor the HTML structure -->
+              
 
 
 
-<!--
-  In order to allow a wide table to scroll horizontally,
-  we suround the markdown table with `<div class="table-wrapper">` and `</div>`
--->
-
-
-
-<!--
-  Fixed kramdown code highlight rendering:
-  https://github.com/penibelst/jekyll-compress-html/issues/101
-  https://github.com/penibelst/jekyll-compress-html/issues/71#issuecomment-188144901
--->
-
-
-
-<!-- Change the icon of checkbox -->
-
-
-
-<!-- Handle images -->
-
-
-
-
-
-<!-- Add header for code snippets -->
-
-
-
-<!-- Create heading anchors -->
-
-
-
-
-
+<article class="px-1">
   
-  
-
-  
-
-  
-  
-
-  
-
-  
-  
-
-  
-
-  
-  
-
-  
+    
 
 
 
-
-<!-- return -->
-
-
-
-
-
-
-
-
-
-<!-- Get pinned posts -->
-
-
-
-
-
-
-<!-- Get default posts -->
-
-
-
-
-
-
-
-
-
-
-<div id="post-list" class="flex-grow-1 px-xl-1">
-  
-    <article class="card-wrapper card">
-      <a href="/posts/W1Playground/" class="post-preview row g-0 flex-md-row-reverse">
-        
-
-        
-
-        <div class="col-md-12">
-          <div class="card-body d-flex flex-column">
-            <h1 class="card-title my-2 mt-md-0">W1 Playground Writeup</h1>
-
-            <div class="card-text content mt-0 mb-3">
-              <p>Bài 1: easy login
-
-
-
-Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
-
-
-
-
-
-Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng...</p>
-            </div>
-
-            <div class="post-meta flex-grow-1 d-flex align-items-end">
-              <div class="me-auto">
-                <!-- posted date -->
-                <i class="far fa-calendar fa-fw me-1"></i>
-                <!--
+<div id="page-tag">
+  <h1 class="ps-lg-2">
+    <i class="fa fa-tag fa-fw text-muted"></i>
+    XSS
+    <span class="lead text-muted ps-2">1</span>
+  </h1>
+  <ul class="content ps-0">
+    
+      <li class="d-flex justify-content-between px-md-3">
+        <a href="/posts/W1Playground/">W1 Playground Writeup</a>
+        <span class="dash flex-grow-1"></span>
+        <!--
   Date format snippet
   See: ${JS_ROOT}/utils/locale-dateime.js
 -->
@@ -617,6 +534,8 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
 
 
 <time
+  
+    class="text-muted small text-nowrap"
   
   data-ts="1714492800"
   data-df="ll"
@@ -625,268 +544,13 @@ Chức năng login bắt chúng ta post data lên và server sẽ trả lại m�
   Apr 30, 2024
 </time>
 
-
-                <!-- categories -->
-                
-                  <i class="far fa-folder-open fa-fw me-1"></i>
-                  <span class="categories">
-                    
-                      CTF Writeup
-                  </span>
-                
-              </div>
-
-              
-            </div>
-            <!-- .post-meta -->
-          </div>
-          <!-- .card-body -->
-        </div>
-      </a>
-    </article>
-  
-    <article class="card-wrapper card">
-      <a href="/posts/GreyCTF/" class="post-preview row g-0 flex-md-row-reverse">
-        
-
-        
-
-        <div class="col-md-12">
-          <div class="card-body d-flex flex-column">
-            <h1 class="card-title my-2 mt-md-0">GreyCTF 2024</h1>
-
-            <div class="card-text content mt-0 mb-3">
-              <p>No Sql Injection
-I asked My friend Jason to build me a new e-commerce website. We just finished the login system and there&#39;s already bugs 🤦
-
-Author: jro
-
-http://challs.nusgreyhats.org:33336
-
-
-
-Phân...</p>
-            </div>
-
-            <div class="post-meta flex-grow-1 d-flex align-items-end">
-              <div class="me-auto">
-                <!-- posted date -->
-                <i class="far fa-calendar fa-fw me-1"></i>
-                <!--
-  Date format snippet
-  See: ${JS_ROOT}/utils/locale-dateime.js
--->
-
-
-
-
-<time
-  
-  data-ts="1713715200"
-  data-df="ll"
-  
->
-  Apr 21, 2024
-</time>
-
-
-                <!-- categories -->
-                
-                  <i class="far fa-folder-open fa-fw me-1"></i>
-                  <span class="categories">
-                    
-                      CTF Writeup
-                  </span>
-                
-              </div>
-
-              
-            </div>
-            <!-- .post-meta -->
-          </div>
-          <!-- .card-body -->
-        </div>
-      </a>
-    </article>
-  
-    <article class="card-wrapper card">
-      <a href="/posts/PicoCTF2024/" class="post-preview row g-0 flex-md-row-reverse">
-        
-
-        
-
-        <div class="col-md-12">
-          <div class="card-body d-flex flex-column">
-            <h1 class="card-title my-2 mt-md-0">PicoCTF 2024</h1>
-
-            <div class="card-text content mt-0 mb-3">
-              <p>PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ...</p>
-            </div>
-
-            <div class="post-meta flex-grow-1 d-flex align-items-end">
-              <div class="me-auto">
-                <!-- posted date -->
-                <i class="far fa-calendar fa-fw me-1"></i>
-                <!--
-  Date format snippet
-  See: ${JS_ROOT}/utils/locale-dateime.js
--->
-
-
-
-
-<time
-  
-  data-ts="1711555200"
-  data-df="ll"
-  
->
-  Mar 27, 2024
-</time>
-
-
-                <!-- categories -->
-                
-                  <i class="far fa-folder-open fa-fw me-1"></i>
-                  <span class="categories">
-                    
-                      CTF Writeup
-                  </span>
-                
-              </div>
-
-              
-            </div>
-            <!-- .post-meta -->
-          </div>
-          <!-- .card-body -->
-        </div>
-      </a>
-    </article>
-  
-    <article class="card-wrapper card">
-      <a href="/posts/Wannagame-Freshman/" class="post-preview row g-0 flex-md-row-reverse">
-        
-
-        
-
-        <div class="col-md-12">
-          <div class="card-body d-flex flex-column">
-            <h1 class="card-title my-2 mt-md-0">Wannagame Freshman CTF writeup</h1>
-
-            <div class="card-text content mt-0 mb-3">
-              <p>WannaWinFreshman-Writeup
-Bài 1 Warmup PHP:
-
-
-
-  Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file...</p>
-            </div>
-
-            <div class="post-meta flex-grow-1 d-flex align-items-end">
-              <div class="me-auto">
-                <!-- posted date -->
-                <i class="far fa-calendar fa-fw me-1"></i>
-                <!--
-  Date format snippet
-  See: ${JS_ROOT}/utils/locale-dateime.js
--->
-
-
-
-
-<time
-  
-  data-ts="1699718400"
-  data-df="ll"
-  
->
-  Nov 11, 2023
-</time>
-
-
-                <!-- categories -->
-                
-                  <i class="far fa-folder-open fa-fw me-1"></i>
-                  <span class="categories">
-                    
-                      CTF Writeup
-                  </span>
-                
-              </div>
-
-              
-            </div>
-            <!-- .post-meta -->
-          </div>
-          <!-- .card-body -->
-        </div>
-      </a>
-    </article>
-  
-    <article class="card-wrapper card">
-      <a href="/posts/AsisCTF/" class="post-preview row g-0 flex-md-row-reverse">
-        
-
-        
-
-        <div class="col-md-12">
-          <div class="card-body d-flex flex-column">
-            <h1 class="card-title my-2 mt-md-0">Asis CTF 2023 Writeup</h1>
-
-            <div class="card-text content mt-0 mb-3">
-              <p>Asis-CTF-2023-Writeup
-Bài 1 hello:
-
-  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà mu...</p>
-            </div>
-
-            <div class="post-meta flex-grow-1 d-flex align-items-end">
-              <div class="me-auto">
-                <!-- posted date -->
-                <i class="far fa-calendar fa-fw me-1"></i>
-                <!--
-  Date format snippet
-  See: ${JS_ROOT}/utils/locale-dateime.js
--->
-
-
-
-
-<time
-  
-  data-ts="1695571200"
-  data-df="ll"
-  
->
-  Sep 24, 2023
-</time>
-
-
-                <!-- categories -->
-                
-                  <i class="far fa-folder-open fa-fw me-1"></i>
-                  <span class="categories">
-                    
-                      CTF Writeup
-                  </span>
-                
-              </div>
-
-              
-            </div>
-            <!-- .post-meta -->
-          </div>
-          <!-- .card-body -->
-        </div>
-      </a>
-    </article>
-  
+      </li>
+    
+  </ul>
 </div>
-<!-- #post-list -->
 
-
-
+  
+</article>
 
             
           </main>
@@ -1951,10 +1615,6 @@ Bài 1 hello:
 
 
 
-  
-
-  
-
 
 
 
@@ -2018,23 +1678,16 @@ Bài 1 hello:
 
   
 
-  
-    
-
-    
-
-  
 
 
-
-  <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3.7.1/dist/jquery.min.js,npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js,npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js,npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.umd.min.js,npm/dayjs@1.11.10/dayjs.min.js,npm/dayjs@1.11.10/locale/en.min.js,npm/dayjs@1.11.10/plugin/relativeTime.min.js,npm/dayjs@1.11.10/plugin/localizedFormat.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3.7.1/dist/jquery.min.js,npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js,npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js,npm/dayjs@1.11.10/dayjs.min.js,npm/dayjs@1.11.10/locale/en.min.js,npm/dayjs@1.11.10/plugin/relativeTime.min.js,npm/dayjs@1.11.10/plugin/localizedFormat.min.js"></script>
 
 
 
 
 
 
-<script defer src="/assets/js/dist/home.min.js"></script>
+<script defer src="/assets/js/dist/misc.min.js"></script>
 
 
 
