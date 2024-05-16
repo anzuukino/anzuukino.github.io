@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-05-16T14:00:44+07:00</updated>
+  <updated>2024-05-16T14:04:47+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -17,6 +17,44 @@
   <icon>/assets/img/favicons/favicon.ico</icon>
   <logo>/assets/img/favicons/favicon-96x96.png</logo>
 
+
+  
+  <entry>
+    <title>KCSC 2024</title>
+    <link href="http://localhost:4000/posts/KCSCCTF/" rel="alternate" type="text/html" title="KCSC 2024" />
+    <published>2024-05-15T23:00:00+07:00</published>
+  
+    <updated>2024-05-15T23:00:00+07:00</updated>
+  
+    <id>http://localhost:4000/posts/KCSCCTF/</id>
+    <content src="http://localhost:4000/posts/KCSCCTF/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Bài Ka Tuổi Trẻ
+
+Tóm tắt: Challenge này là sử dụng một server flask đơn giản với function đọc file tại endpoint / với params file sau đó thêm ./static vào đằng trước file để đọc file trong thư mục static. Phần sau là kiểm tra file có tồn tại không, dung lượng của file phải bé hơn 2MB và có quyền đọc nó thì sẽ tiếp tục đi qua regex nếu qua thì sẽ trả về nội dung của file đó.
+
+from flask import F...
+    </summary>
+  
+
+  </entry>
 
   
   <entry>
@@ -112,44 +150,6 @@ app.post('/api/register/1', async (req, res) =&amp;gt; {
         let { username } = req.body;
 
         username = decode(us...
-    </summary>
-  
-
-  </entry>
-
-  
-  <entry>
-    <title>KCSC 2024</title>
-    <link href="http://localhost:4000/posts/KCSCCTF/" rel="alternate" type="text/html" title="KCSC 2024" />
-    <published>2024-04-21T23:00:00+07:00</published>
-  
-    <updated>2024-04-21T23:00:00+07:00</updated>
-  
-    <id>http://localhost:4000/posts/KCSCCTF/</id>
-    <content src="http://localhost:4000/posts/KCSCCTF/" />
-    <author>
-      <name>Yuu</name>
-    </author>
-
-  
-    
-    <category term="CTF Writeup" />
-    
-  
-
-  
-    <summary>
-      
-
-
-
-
-
-      Bài Ka Tuổi Trẻ
-
-Tóm tắt: Challenge này là sử dụng một server flask đơn giản với function đọc file tại endpoint / với params file sau đó thêm ./static vào đằng trước file để đọc file trong thư mục static. Phần sau là kiểm tra file có tồn tại không, dung lượng của file phải bé hơn 2MB và có quyền đọc nó thì sẽ tiếp tục đi qua regex nếu qua thì sẽ trả về nội dung của file đó.
-
-from flask import F...
     </summary>
   
 
