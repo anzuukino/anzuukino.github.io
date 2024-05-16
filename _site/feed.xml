@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-05-16T14:08:45+07:00</updated>
+  <updated>2024-05-16T14:09:46+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -24,7 +24,7 @@
     <link href="http://localhost:4000/posts/KCSCCTF/" rel="alternate" type="text/html" title="KCSC 2024" />
     <published>2024-05-15T23:00:00+07:00</published>
   
-    <updated>2024-05-16T14:05:01+07:00</updated>
+    <updated>2024-05-16T14:09:11+07:00</updated>
   
     <id>http://localhost:4000/posts/KCSCCTF/</id>
     <content src="http://localhost:4000/posts/KCSCCTF/" />
