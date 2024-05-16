@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-05-01T20:43:59+07:00</updated>
+  <updated>2024-05-16T14:00:44+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -24,7 +24,7 @@
     <link href="http://localhost:4000/posts/W1Playground/" rel="alternate" type="text/html" title="W1 Playground Writeup" />
     <published>2024-04-30T23:00:00+07:00</published>
   
-    <updated>2024-05-01T20:17:41+07:00</updated>
+    <updated>2024-05-01T20:44:39+07:00</updated>
   
     <id>http://localhost:4000/posts/W1Playground/</id>
     <content src="http://localhost:4000/posts/W1Playground/" />
@@ -119,6 +119,44 @@ app.post('/api/register/1', async (req, res) =&amp;gt; {
 
   
   <entry>
+    <title>KCSC 2024</title>
+    <link href="http://localhost:4000/posts/KCSCCTF/" rel="alternate" type="text/html" title="KCSC 2024" />
+    <published>2024-04-21T23:00:00+07:00</published>
+  
+    <updated>2024-04-21T23:00:00+07:00</updated>
+  
+    <id>http://localhost:4000/posts/KCSCCTF/</id>
+    <content src="http://localhost:4000/posts/KCSCCTF/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Bài Ka Tuổi Trẻ
+
+Tóm tắt: Challenge này là sử dụng một server flask đơn giản với function đọc file tại endpoint / với params file sau đó thêm ./static vào đằng trước file để đọc file trong thư mục static. Phần sau là kiểm tra file có tồn tại không, dung lượng của file phải bé hơn 2MB và có quyền đọc nó thì sẽ tiếp tục đi qua regex nếu qua thì sẽ trả về nội dung của file đó.
+
+from flask import F...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
     <title>PicoCTF 2024</title>
     <link href="http://localhost:4000/posts/PicoCTF2024/" rel="alternate" type="text/html" title="PicoCTF 2024" />
     <published>2024-03-27T23:00:00+07:00</published>
@@ -197,50 +235,6 @@ Bài 1 Warmup PHP:
   
   
     Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payl...
-    </summary>
-  
-
-  </entry>
-
-  
-  <entry>
-    <title>Asis CTF 2023 Writeup</title>
-    <link href="http://localhost:4000/posts/AsisCTF/" rel="alternate" type="text/html" title="Asis CTF 2023 Writeup" />
-    <published>2023-09-24T23:00:00+07:00</published>
-  
-    <updated>2023-09-24T23:00:00+07:00</updated>
-  
-    <id>http://localhost:4000/posts/AsisCTF/</id>
-    <content src="http://localhost:4000/posts/AsisCTF/" />
-    <author>
-      <name>Yuu</name>
-    </author>
-
-  
-    
-    <category term="CTF Writeup" />
-    
-  
-
-  
-    <summary>
-      
-
-
-
-
-
-      Asis-CTF-2023-Writeup
-Bài 1 hello:
-
-  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà muốn đọc được flag thì phải đọc được file next.txt
-  Đọc đề, đề gợi ý cho mình đọc manpage của curl
-
-
-
-
-
-  Sau khi đọc và phân tích manpage mình đã nhận ra cách làm của bài này dựa vào chức năng bên dướ...
     </summary>
   
 
