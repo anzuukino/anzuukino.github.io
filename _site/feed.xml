@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-05-16T14:12:24+07:00</updated>
+  <updated>2024-06-29T00:24:40+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -20,11 +20,57 @@
 
   
   <entry>
+    <title>WannaGame</title>
+    <link href="http://localhost:4000/posts/Wannagame2024/" rel="alternate" type="text/html" title="WannaGame" />
+    <published>2024-06-14T23:00:00+07:00</published>
+  
+    <updated>2024-06-14T23:00:00+07:00</updated>
+  
+    <id>http://localhost:4000/posts/Wannagame2024/</id>
+    <content src="http://localhost:4000/posts/Wannagame2024/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      WannaGame vừa mới kết thúc, mình xin viết lại một số bài mà mình làm được, giải này mình khá may mắn khi giải được 2 bài và mình cũng học được rất nhiều thứ từ giải này.
+
+
+
+newchall
+This is a simple calc program,let's try /exec?q=9*10.
+
+Author: dcthinh
+
+http://45.122.249.68:20011
+
+
+Bài này cho một trang web có chức năng như trên và mình đoán khá là chắc rằng tất cả những gì mình nhập vào sẽ đượ...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
     <title>KCSC 2024</title>
     <link href="http://localhost:4000/posts/KCSCCTF/" rel="alternate" type="text/html" title="KCSC 2024" />
     <published>2024-05-15T23:00:00+07:00</published>
   
-    <updated>2024-05-16T14:10:34+07:00</updated>
+    <updated>2024-05-16T14:12:43+07:00</updated>
   
     <id>http://localhost:4000/posts/KCSCCTF/</id>
     <content src="http://localhost:4000/posts/KCSCCTF/" />
@@ -190,51 +236,6 @@ app.post('/api/register/1', async (req, res) =&amp;gt; {
 GENERAL SKILLS: dont-you-love-banners
 Can you abuse the banner?
 The server has been leaking some crucial information on tethys.picoctf.net 64560. Use the leaked information to get...
-    </summary>
-  
-
-  </entry>
-
-  
-  <entry>
-    <title>Wannagame Freshman CTF writeup</title>
-    <link href="http://localhost:4000/posts/Wannagame-Freshman/" rel="alternate" type="text/html" title="Wannagame Freshman CTF writeup" />
-    <published>2023-11-11T23:00:00+07:00</published>
-  
-    <updated>2024-04-23T00:56:56+07:00</updated>
-  
-    <id>http://localhost:4000/posts/Wannagame-Freshman/</id>
-    <content src="http://localhost:4000/posts/Wannagame-Freshman/" />
-    <author>
-      <name>Yuu</name>
-    </author>
-
-  
-    
-    <category term="CTF Writeup" />
-    
-  
-
-  
-    <summary>
-      
-
-
-
-
-
-      WannaWinFreshman-Writeup
-Bài 1 Warmup PHP:
-
-
-
-  Tóm tắt đề thì đại khái là đề bảo chúng ta phải POST data lên dưới dạng json có key là page và sau đó chương trình sẽ server sẽ decode ra và đọc file trong server
-  
-    Sau khi phân tích và tìm kiếm trên mạng thì mình tìm được 1 bài viếtLINK
-
-  
-  
-    Cơ bản là json_decode nó sẽ decode luôn mã unicode thành chữ cái vì vậy mình chỉnh lại cái payl...
     </summary>
   
 
