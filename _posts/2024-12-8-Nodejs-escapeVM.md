@@ -71,7 +71,7 @@ console.log('localVar:', localVar);
 // vmResult: 'box', localVar: 'di'
 
 ```
-![alt text](assets/escapevm/2.png)
+
 
 - `vm.createContext([sandbox])`: Trước khi sử dụng, cần tạo một đối tượng sandbox, sau đó chuyển đối tượng sandbox này làm tham số cho phương thức (nếu không có, một đối tượng sandbox rỗng sẽ được tạo tự động). V8 (JavaScript Engine) tạo ra một phạm vi mới bên ngoài global hiện tại cho đối tượng sandbox. Lúc này, đối tượng sandbox trở thành đối tượng toàn cục của phạm vi mới được tạo, và bên trong sandbox, không thể truy cập các thuộc tính trong global
 
@@ -88,6 +88,8 @@ console.log(sandbox); // { test: 12 }
 ```
 
 `Hàm vm.runInNewContext(code[, sandbox][, options])` là sự kết hợp của createContext và runInContext. Nó nhận vào mã cần thực thi (code), một đối tượng sandbox và tùy chọn (options). Nói đơn giản là gộp 2 function làm một
+
+![alt text](assets/escapevm/5.png)
 
 
 `vm.Script` là một lớp trong Node.js cho phép bạn biên dịch và chạy đoạn mã JavaScript trong một ngữ cảnh cụ thể. Các đối tượng của lớp vm.Script chứa các đoạn mã đã được biên dịch trước và có thể được thực thi nhiều lần trong một hoặc nhiều sandbox.
@@ -111,7 +113,6 @@ vm.createContext(sandbox);
 vm.runInContext(`test = this.constructor.constructor('return process.env')()`, sandbox);
 console.log(sandbox)
 ```
-![alt text](assets/escapevm/5.png)
 
 
 
@@ -120,6 +121,8 @@ Vậy vì sao chúng ta có thể thoát khỏi sandbox và access được glob
 Nói một cách đơn giản, quá trình này ta chain các `gadget` để truy cập đến constructor của Function, sau đó tạo hàm và lấy process. Đây chính là cách đơn giản nhất để thoát khỏi sandbox
 
 Sau khi có process thì RCE là chuyện đơn giản
+
+![alt text](assets/escapevm/2.png)
 
 Một số trường hợp khác
 
@@ -147,6 +150,8 @@ console.log('Hello ' + res);
 Khi this đang là null và không có đối tượng nào khác để tham chiếu, chúng ta có thể tận dụng thuộc tính nội tại của đối tượng hàm, cụ thể là `arguments.callee.caller`. Thuộc tính này cho phép chúng ta xác định hàm nào đã gọi hàm hiện tại.
 
 Trong tình huống này, việc thoát khỏi sandbox (sandbox escape) thực chất là tìm một đối tượng bên ngoài môi trường sandbox và gọi một trong các phương thức của nó. Cách thực hiện là định nghĩa một hàm trong sandbox, sau đó gọi hàm đó từ bên ngoài sandbox. Khi hàm trong sandbox được gọi, thuộc tính `arguments.callee.caller` sẽ trả về đối tượng hàm từ bên ngoài sandbox. Từ đó, chúng ta có thể khai thác để thực hiện việc thoát khỏi môi trường sandbox.
+
+![alt text](assets/escapevm/6.png)
 
 
 Giải thích đơn giản
