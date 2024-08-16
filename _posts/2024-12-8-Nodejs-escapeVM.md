@@ -71,6 +71,7 @@ console.log('localVar:', localVar);
 // vmResult: 'box', localVar: 'di'
 
 ```
+![alt text](assets/escapevm/2.png)
 
 - `vm.createContext([sandbox])`: Trước khi sử dụng, cần tạo một đối tượng sandbox, sau đó chuyển đối tượng sandbox này làm tham số cho phương thức (nếu không có, một đối tượng sandbox rỗng sẽ được tạo tự động). V8 (JavaScript Engine) tạo ra một phạm vi mới bên ngoài global hiện tại cho đối tượng sandbox. Lúc này, đối tượng sandbox trở thành đối tượng toàn cục của phạm vi mới được tạo, và bên trong sandbox, không thể truy cập các thuộc tính trong global
 
@@ -110,8 +111,9 @@ vm.createContext(sandbox);
 vm.runInContext(`test = this.constructor.constructor('return process.env')()`, sandbox);
 console.log(sandbox)
 ```
+![alt text](assets/escapevm/5.png)
 
-![alt text](assets/escapevm/2.png)
+
 
 Vậy vì sao chúng ta có thể thoát khỏi sandbox và access được global? Lý do là vì trong đoạn code trên `this` trỏ đến `runInContext` ( hoặc `runInNewContext`), nó không thuộc về sandbox, chúng ta có thể dựa vào cái này để lấy constructor của nó sau đó tiếp tục lấy constructor của nó ta sẽ lấy được `Function` (cái này là của bên ngoài sandbox). Cuối cùng dựa vào `Function` mà ta vừa lấy được ta có thể lấy được `process`
 

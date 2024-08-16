@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-08-16T19:14:01+07:00</updated>
+  <updated>2024-08-16T19:19:01+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -24,7 +24,7 @@
     <link href="http://localhost:4000/posts/Nodejs-escapeVM/" rel="alternate" type="text/html" title="NodeJS escape VM and some gadgets chaining in NodeJS" />
     <published>2024-08-11T23:00:00+07:00</published>
   
-    <updated>2024-08-11T23:00:00+07:00</updated>
+    <updated>2024-08-16T19:14:25+07:00</updated>
   
     <id>http://localhost:4000/posts/Nodejs-escapeVM/</id>
     <content src="http://localhost:4000/posts/Nodejs-escapeVM/" />
