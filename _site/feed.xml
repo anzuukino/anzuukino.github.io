@@ -4,7 +4,7 @@
   <id>http://localhost:4000/</id>
   <title>Yuu's blog</title>
   <subtitle>Something genuine</subtitle>
-  <updated>2024-08-16T19:25:07+07:00</updated>
+  <updated>2024-08-21T00:23:23+07:00</updated>
   <author>
     <name>Yuu</name>
     <uri>http://localhost:4000/</uri>
@@ -24,7 +24,7 @@
     <link href="http://localhost:4000/posts/Nodejs-escapeVM/" rel="alternate" type="text/html" title="NodeJS escape VM and some gadgets chaining in NodeJS" />
     <published>2024-08-11T23:00:00+07:00</published>
   
-    <updated>2024-08-16T19:19:31+07:00</updated>
+    <updated>2024-08-16T19:25:54+07:00</updated>
   
     <id>http://localhost:4000/posts/Nodejs-escapeVM/</id>
     <content src="http://localhost:4000/posts/Nodejs-escapeVM/" />
@@ -142,52 +142,6 @@ from flask import F...
 
   
   <entry>
-    <title>W1 Playground Writeup</title>
-    <link href="http://localhost:4000/posts/W1Playground/" rel="alternate" type="text/html" title="W1 Playground Writeup" />
-    <published>2024-04-30T23:00:00+07:00</published>
-  
-    <updated>2024-05-01T20:44:39+07:00</updated>
-  
-    <id>http://localhost:4000/posts/W1Playground/</id>
-    <content src="http://localhost:4000/posts/W1Playground/" />
-    <author>
-      <name>Yuu</name>
-    </author>
-
-  
-    
-    <category term="CTF Writeup" />
-    
-  
-
-  
-    <summary>
-      
-
-
-
-
-
-      Bài 1: easy login
-
-
-
-Phân tích qua code thì chúng ta có 2 endpoint cần để tâm là “/login” và “/admin”
-
-
-
-
-
-Chức năng login bắt chúng ta post data lên và server sẽ trả lại mã jwtkey để chúng ta đăng nhập
-Chức năng admin kiểm tra xem chúng ta có phải admin không qua isAdmin=true sau khi phân tích jwtkey
-Sau khi phân tích bài này dính lỗi Prototype Pollution bằng cách thêm logindata["__proto__"][i...
-    </summary>
-  
-
-  </entry>
-
-  
-  <entry>
     <title>GreyCTF 2024</title>
     <link href="http://localhost:4000/posts/GreyCTF/" rel="alternate" type="text/html" title="GreyCTF 2024" />
     <published>2024-04-21T23:00:00+07:00</published>
@@ -234,6 +188,46 @@ app.post('/api/register/1', async (req, res) =&amp;gt; {
         let { username } = req.body;
 
         username = decode(us...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>PicoCTF 2024</title>
+    <link href="http://localhost:4000/posts/PicoCTF2024/" rel="alternate" type="text/html" title="PicoCTF 2024" />
+    <published>2024-03-27T23:00:00+07:00</published>
+  
+    <updated>2024-03-28T17:57:23+07:00</updated>
+  
+    <id>http://localhost:4000/posts/PicoCTF2024/</id>
+    <content src="http://localhost:4000/posts/PicoCTF2024/" />
+    <author>
+      <name>Yuu</name>
+    </author>
+
+  
+    
+    <category term="CTF Writeup" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      PicoCTF2024 đã kết thúc, giải này mình có khá nhiều nuối tiếc vì bài cuối web quá khó, dù không clear nhưng team Zafk1el tụi mình đã cố gắng hết sức. Tiện đây mình viết writeup một số bài đáng chú ý trong giải này.
+
+
+
+GENERAL SKILLS: dont-you-love-banners
+Can you abuse the banner?
+The server has been leaking some crucial information on tethys.picoctf.net 64560. Use the leaked information to get...
     </summary>
   
 
